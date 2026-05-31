@@ -1,0 +1,88 @@
+// KQL example — Code Scavenge test file
+// Kusto Query Language (Azure Data Explorer / Sentinel / Log Analytics)
+
+// ── Tables ────────────────────────────────────────────────────
+
+.create table Events (
+    Timestamp: datetime,
+    Source:    string,
+    Level:     string,
+    Message:   string,
+    Properties: dynamic
+)
+
+.create table Metrics (
+    Timestamp:  datetime,
+    MetricName: string,
+    Value:      real,
+    Tags:       dynamic
+)
+
+// ── Let-bound scalar functions ─────────────────────────────────
+
+let clamp = (value: real, lo: real, hi: real) {
+    iff(value < lo, lo, iff(value > hi, hi, value))
+};
+
+let lerp = (a: real, b: real, t: real) {
+    a + (b - a) * t
+};
+
+let to_severity = (level: string) {
+    case(
+        level == "Critical", 4,
+        level == "Error",    3,
+        level == "Warning",  2,
+        level == "Info",     1,
+        0
+    )
+};
+
+// ── Let-bound tabular functions ────────────────────────────────
+
+let recent_errors = (lookback: timespan = 1h) {
+    Events
+    | where Timestamp > ago(lookback)
+    | where Level in ("Error", "Critical")
+    | project Timestamp, Source, Message
+    | order by Timestamp desc
+};
+
+let top_sources = (n: int = 10, lookback: timespan = 24h) {
+    Events
+    | where Timestamp > ago(lookback)
+    | summarize Count = count() by Source
+    | top n by Count desc
+};
+
+// ── Let-bound aliases / constants ─────────────────────────────
+
+let SeverityThreshold = 2;
+let DefaultLookback   = 6h;
+let CriticalSources   = dynamic(["auth-service", "payment-service"]);
+
+// ── Stored functions (.create function) ───────────────────────
+
+.create-or-alter function with (docstring="Returns events above severity threshold")
+    GetHighSeverityEvents(lookback: timespan = 1h, minSeverity: int = 2) {
+    Events
+    | where Timestamp > ago(lookback)
+    | extend Severity = case(Level == "Critical", 4, Level == "Error", 3, Level == "Warning", 2, 1)
+    | where Severity >= minSeverity
+    | order by Timestamp desc
+}
+
+.create function ComputeP99(metricName: string, lookback: timespan) {
+    Metrics
+    | where Timestamp > ago(lookback)
+    | where MetricName == metricName
+    | summarize percentile(Value, 99)
+}
+
+// ── Materialized view ─────────────────────────────────────────
+
+.create materialized-view EventsByHour on table Events {
+    Events
+    | summarize Count = count(), ErrorCount = countif(Level == "Error")
+        by bin(Timestamp, 1h), Source
+}
