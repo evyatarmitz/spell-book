@@ -1,0 +1,53 @@
+// SCSS example — Code Scavenge test file
+
+// Mixins
+@mixin flex-center($direction: row) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: $direction;
+}
+
+@mixin truncate($width: 100%) {
+    width: $width;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+@mixin respond-to($breakpoint) {
+    @if $breakpoint == 'sm' { @media (min-width: 640px)  { @content; } }
+    @else if $breakpoint == 'md' { @media (min-width: 768px)  { @content; } }
+    @else if $breakpoint == 'lg' { @media (min-width: 1024px) { @content; } }
+}
+
+// Functions
+@function rem($px, $base: 16) {
+    @return #{$px / $base}rem;
+}
+
+@function clamp-val($value, $min, $max) {
+    @return min($max, max($min, $value));
+}
+
+// Extend placeholders
+%card-base {
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+%visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+// Usage example
+.card {
+    @extend %card-base;
+    @include flex-center(column);
+    width: rem(320);
+}

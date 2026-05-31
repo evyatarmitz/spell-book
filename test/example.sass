@@ -1,0 +1,42 @@
+// SASS example — Code Scavenge test file
+// (uses SCSS syntax — the most common .sass style)
+
+@mixin shadow($level: 1) {
+    @if $level == 1 { box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    @else if $level == 2 { box-shadow: 0 4px 12px rgba(0,0,0,.18); }
+    @else { box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+}
+
+@mixin transition($props...) {
+    transition-property: $props;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+}
+
+@mixin grid($cols: 12, $gap: 1rem) {
+    display: grid;
+    grid-template-columns: repeat($cols, 1fr);
+    gap: $gap;
+}
+
+@function strip-unit($value) {
+    @return $value / ($value * 0 + 1);
+}
+
+@function em($px, $base: 16) {
+    @return #{strip-unit($px) / strip-unit($base)}em;
+}
+
+%reset-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+%button-reset {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
