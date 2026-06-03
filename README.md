@@ -2,14 +2,27 @@
 
 A local-first personal code library — drop a source file, scavenge its functions, annotate them, and catalog them forever. Works offline. Your data stays on your machine.
 
+## Prerequisites
+
+- **[Node.js](https://nodejs.org/) v18 or newer** — download the LTS version from nodejs.org. npm comes bundled with it, no separate install needed.
+- A modern browser (Chrome, Firefox, Edge)
+- That's it — no database, no Docker, no cloud account.
+
 ## Quick start
 
+**Windows — easiest way:**
+1. Clone or download this repo
+2. Open a terminal in the folder and run `npm install`
+3. Double-click **`start.bat`** — it starts the server and opens the browser automatically
+
+**Any OS:**
 ```sh
 npm install
 npm start
 ```
-
 Then open **http://localhost:3333** in your browser.
+
+> **First run:** the `library/` folder is created automatically. Nothing to set up.
 
 ## What it is
 
