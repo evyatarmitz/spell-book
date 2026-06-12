@@ -4,6 +4,7 @@ A local-first personal code library — drop a source file, scavenge its functio
 
 ## Quick start
 
+**most have nodejs**
 ```sh
 npm install
 npm start
