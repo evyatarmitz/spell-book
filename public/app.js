@@ -60,14 +60,6 @@ async function api(method, path, body) {
 }
 
 // ── Load ───────────────────────────────────────────────────────
-function dismissLoader() {
-  const el = document.getElementById('loading-screen');
-  if (!el) return;
-  el.classList.add('fade-out');
-  setTimeout(() => el.remove(), 450);
-}
-
-
 async function loadEntries() {
   try {
     allEntries = await api('GET', '/api/entries');
@@ -75,8 +67,6 @@ async function loadEntries() {
     renderFilters();
   } catch (err) {
     showToast('Failed to load entries: ' + err.message, 'error');
-  } finally {
-    dismissLoader();
   }
 }
 
