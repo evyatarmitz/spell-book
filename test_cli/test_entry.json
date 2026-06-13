@@ -1,0 +1,13 @@
+{
+  "id": "clamp-js",
+  "name": "clamp",
+  "language": "javascript",
+  "tags": ["math", "pure"],
+  "origin": "test",
+  "status": "stable",
+  "contract": "Clamps a number between min and max.",
+  "inputs": "value (number), min (number), max (number)",
+  "outputs": "number — value clamped to [min, max]",
+  "scars": "does not validate min <= max",
+  "sourceContent": "function clamp(value, min, max) {\n  return Math.min(Math.max(value, min), max);\n}"
+}

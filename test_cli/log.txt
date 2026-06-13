@@ -1,0 +1,27 @@
+> sb init-ai
+Copied AI_README.md to: C:\Users\USER\AI_Agency\Spell Book\test_cli\AI_README.md
+
+> sb add test_entry.json
+Added: clamp (clamp-js)
+
+> sb search clamp
+clamp  [clamp-js]  javascript  math, pure
+
+> sb search math
+clamp  [clamp-js]  javascript  math, pure
+
+> sb get clamp
+Name: clamp
+ID:   clamp-js
+What: Clamps a number between min and max.
+In:   value (number), min (number), max (number)
+Out:  number — value clamped to [min, max]
+Scars: does not validate min <= max
+---
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+> sb status
+Library: C:\Users\USER\AI_Agency\Spell Book\library
+Entries: 2
