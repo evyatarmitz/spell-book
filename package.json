@@ -2,15 +2,8 @@
   "name": "spell-book",
   "version": "1.0.0",
   "description": "Local-first personal code library — catalog, search, and export reusable code.",
-  "scripts": {
-    "dev": "tauri dev",
-    "build": "tauri build"
-  },
-  "dependencies": {
-    "@tauri-apps/api": "^2.11.0",
-    "prismjs": "^1.29.0"
-  },
-  "devDependencies": {
-    "@tauri-apps/cli": "^2.11.2"
+  "note": "Node is not required to build or run this project. Rust is the only dependency. See start.bat.",
+  "vendored": {
+    "prismjs": "1.29.0"
   }
 }
