@@ -1,3 +1,29 @@
+/* ===== Loading screen ===== */
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  background: #0d1117;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
+}
+#loading-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+#loading-logo {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  opacity: 0;
+  animation: logo-fade-in 0.6s ease 0.1s forwards;
+}
+@keyframes logo-fade-in {
+  to { opacity: 1; }
+}
+
 /* ===== Reset & Base ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

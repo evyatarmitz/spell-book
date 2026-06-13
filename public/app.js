@@ -27,9 +27,15 @@ let blockDrafts   = {};  // displayName → saved form state
 let checkedBlocks = new Set(); // displayNames of checked blocks
 
 // ── API helper — routes to Tauri invoke ────────────────────────
-const invoke = window.__TAURI__?.core?.invoke ?? window.__TAURI__?.invoke;
+function getInvoke() {
+  return window.__TAURI__?.core?.invoke
+    ?? window.__TAURI__?.tauri?.invoke
+    ?? window.__TAURI__?.invoke
+    ?? null;
+}
 
 async function api(method, path, body) {
+  const invoke = getInvoke();
   if (!invoke) throw new Error('Tauri not available');
 
   if (method === 'GET' && path === '/api/entries') {
@@ -54,6 +60,14 @@ async function api(method, path, body) {
 }
 
 // ── Load ───────────────────────────────────────────────────────
+function dismissLoader() {
+  const el = document.getElementById('loading-screen');
+  if (!el) return;
+  el.classList.add('fade-out');
+  setTimeout(() => el.remove(), 450);
+}
+
+
 async function loadEntries() {
   try {
     allEntries = await api('GET', '/api/entries');
@@ -61,6 +75,8 @@ async function loadEntries() {
     renderFilters();
   } catch (err) {
     showToast('Failed to load entries: ' + err.message, 'error');
+  } finally {
+    dismissLoader();
   }
 }
 
@@ -486,7 +502,7 @@ function buildForm(e) {
       <div class="form-field">
         <label>Language <span class="req">*</span></label>
         <input id="modal-language" type="text" list="lang-list"
-          value="${esc(v.language||'javascript')}" placeholder="javascript, python…" autocomplete="off">
+          value="${esc(v.language||'')}" placeholder="javascript, python…" autocomplete="off">
         <datalist id="lang-list">${langList}</datalist>
       </div>
     </div>
@@ -499,13 +515,15 @@ function buildForm(e) {
         <div class="form-field" style="flex:1">
           <label>Status</label>
           <select id="modal-status">
-            ${['stable','scarred','experimental'].map(s=>`<option value="${s}"${(v.status||'experimental')===s?' selected':''}>${s}</option>`).join('')}
+            ${!isEdit ? '<option value="" disabled selected>status…</option>' : ''}
+            ${['stable','scarred','experimental'].map(s=>`<option value="${s}"${(v.status)===s?' selected':''}>${s}</option>`).join('')}
           </select>
         </div>
         <div class="form-field" style="flex:0 0 110px">
           <label>Type</label>
           <select id="modal-type">
-            ${TYPES.map(t=>`<option value="${t}"${(v.type||'function')===t?' selected':''}>${t}</option>`).join('')}
+            ${!isEdit ? '<option value="" disabled selected>type…</option>' : ''}
+            ${TYPES.map(t=>`<option value="${t}"${(v.type)===t?' selected':''}>${t}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -3541,6 +3559,8 @@ function debounce(fn, ms) {
 // ── Library path UI ────────────────────────────────────────────
 async function initLibraryPath() {
   try {
+    const invoke = getInvoke();
+    if (!invoke) return;
     const dir = await invoke('get_library_dir');
     const el  = $('lib-path-display');
     if (el) el.textContent = dir ? dir.split(/[\\/]/).slice(-2).join('/') : 'Not set';
@@ -3550,8 +3570,10 @@ async function initLibraryPath() {
 }
 
 $('lib-path-btn')?.addEventListener('click', async () => {
-  const path = await invoke('get_library_dir').catch(() => null);
-  const newPath = prompt('Enter path to your library folder:', path || '');
+  const invoke = getInvoke();
+  if (!invoke) return;
+  const current = await invoke('get_library_dir').catch(() => null);
+  const newPath = prompt('Enter path to your library folder:', current || '');
   if (!newPath) return;
   try {
     await invoke('set_library_dir', { path: newPath });

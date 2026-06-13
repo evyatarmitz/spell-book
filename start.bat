@@ -1,17 +1,12 @@
 @echo off
 cd /d "%~dp0"
 
-REM Kill previous instance if one is still running
-if exist .server.pid (
-  set /p PREV_PID=<.server.pid
-  taskkill /f /pid %PREV_PID% >nul 2>&1
-  del .server.pid >nul 2>&1
+set EXE=src-tauri\target\release\spell-book.exe
+
+if not exist "%EXE%" (
+  echo First run — building the app, this takes a few minutes...
+  echo.
+  call npx tauri build
 )
 
-echo.
-echo  ★ Spell Book   http://localhost:3333
-echo  Close this window to stop the server.
-echo.
-
-start "" "http://localhost:3333"
-node server.js
+start "" "%~dp0%EXE%"
