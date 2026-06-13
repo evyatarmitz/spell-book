@@ -1,0 +1,19 @@
+[
+  {
+    "id": "perimeter-rb",
+    "name": "log",
+    "language": "ruby",
+    "tags": [],
+    "origin": "",
+    "touched": [],
+    "status": "experimental",
+    "contract": "",
+    "inputs": "",
+    "outputs": "",
+    "scars": "",
+    "notes": "",
+    "source": "sources/perimeter-rb.ruby",
+    "created_at": "2026-05-30T17:01:21.420Z",
+    "updated_at": "2026-05-30T17:01:21.420Z"
+  }
+]
