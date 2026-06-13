@@ -4,6 +4,9 @@ library/
 # Tauri build output
 src-tauri/target/
 
+# Leftover from old Node server
+.server.pid
+
 # Node (only needed if someone uses npm tooling locally)
 node_modules/
 npm-debug.log*
