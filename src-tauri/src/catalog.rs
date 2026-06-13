@@ -76,10 +76,19 @@ pub fn config_path() -> PathBuf {
         .join("config.json")
 }
 
+/// Returns the configured library dir, or the default (`library/` next to the exe).
 pub fn read_library_dir() -> Option<PathBuf> {
-    let text = fs::read_to_string(config_path()).ok()?;
-    let val: Value = serde_json::from_str(&text).ok()?;
-    val["dir"].as_str().map(PathBuf::from)
+    // 1. Explicit override in ~/.spellbook/config.json
+    if let Ok(text) = fs::read_to_string(config_path()) {
+        if let Ok(val) = serde_json::from_str::<Value>(&text) {
+            if let Some(dir) = val["dir"].as_str().map(PathBuf::from) {
+                return Some(dir);
+            }
+        }
+    }
+    // 2. Default: library/ next to the running executable
+    std::env::current_exe().ok()
+        .and_then(|p| p.parent().map(|d| d.join("library")))
 }
 
 pub fn write_library_dir(dir: &Path) -> Result<(), String> {
@@ -94,9 +103,11 @@ pub fn write_library_dir(dir: &Path) -> Result<(), String> {
 }
 
 pub fn require_library_dir() -> Result<PathBuf, String> {
-    read_library_dir().ok_or_else(|| {
-        "No library configured.\nRun: sb use \"C:\\path\\to\\library\"".to_string()
-    })
+    let dir = read_library_dir()
+        .ok_or_else(|| "Cannot determine library path.".to_string())?;
+    // Auto-create on first use — no setup required
+    fs::create_dir_all(dir.join("sources")).map_err(|e| e.to_string())?;
+    Ok(dir)
 }
 
 // ── Catalog I/O ───────────────────────────────────────────────────────────────
