@@ -1,0 +1,28 @@
+[package]
+name = "spell-book"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "spell_book_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+zip = "2"
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "5"
+regex-lite = "0.1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

@@ -26,17 +26,31 @@ let importedFileCode  = '';
 let blockDrafts   = {};  // displayName → saved form state
 let checkedBlocks = new Set(); // displayNames of checked blocks
 
-// ── API helper ─────────────────────────────────────────────────
+// ── API helper — routes to Tauri invoke ────────────────────────
+const invoke = window.__TAURI__?.core?.invoke ?? window.__TAURI__?.invoke;
+
 async function api(method, path, body) {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
-  if (body !== undefined) opts.body = JSON.stringify(body);
-  const res = await fetch(path, opts);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || res.statusText);
+  if (!invoke) throw new Error('Tauri not available');
+
+  if (method === 'GET' && path === '/api/entries') {
+    return invoke('get_entries');
   }
-  if (res.headers.get('Content-Type')?.includes('application/zip')) return res.blob();
-  return res.json();
+  if (method === 'GET' && path.startsWith('/api/entries/')) {
+    return invoke('get_entry', { id: path.slice('/api/entries/'.length) });
+  }
+  if (method === 'DELETE' && path.startsWith('/api/entries/')) {
+    return invoke('delete_entry', { id: path.slice('/api/entries/'.length) });
+  }
+  if (method === 'POST' && path === '/api/entries') {
+    return invoke('create_entry', { data: body });
+  }
+  if (method === 'PUT' && path.startsWith('/api/entries/')) {
+    return invoke('update_entry', { id: path.slice('/api/entries/'.length), data: body });
+  }
+  if (method === 'POST' && path === '/api/export') {
+    return invoke('export_entries', { ids: body.ids });
+  }
+  throw new Error(`Unknown API: ${method} ${path}`);
 }
 
 // ── Load ───────────────────────────────────────────────────────
@@ -3237,12 +3251,11 @@ async function saveModal() {
 async function exportSelected() {
   if (!selectedIds.size) return;
   try {
-    const blob = await api('POST', '/api/export', { ids: [...selectedIds] });
-    const url  = URL.createObjectURL(blob);
-    const a    = Object.assign(document.createElement('a'), { href: url, download: 'scavenge-export.zip' });
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    showToast(`Exported ${selectedIds.size} entr${selectedIds.size===1?'y':'ies'}`);
-  } catch (err) { showToast('Export failed: ' + err.message, 'error'); }
+    const savedPath = await api('POST', '/api/export', { ids: [...selectedIds] });
+    if (savedPath) showToast(`Exported ${selectedIds.size} entr${selectedIds.size===1?'y':'ies'}`);
+  } catch (err) {
+    if (!err.message.includes('cancelled')) showToast('Export failed: ' + err.message, 'error');
+  }
 }
 
 // ── Clipboard ──────────────────────────────────────────────────
@@ -3341,13 +3354,6 @@ function wireEvents() {
     filters.search = e.target.value; applyFilters();
   }, 120));
 
-  // Stop server
-  $('stop-server-btn').addEventListener('click', () => {
-    openConfirm('Stop the server?\nThe UI will stop working until you restart via start.bat.', async () => {
-      try { await fetch('/api/shutdown', { method: 'POST' }); } catch {}
-      showToast('Server stopped. You can close this tab.');
-    });
-  });
 
   // Topbar + detail + selection
   $('add-btn').addEventListener('click', () => openModal());
@@ -3532,5 +3538,32 @@ function debounce(fn, ms) {
   let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
 
+// ── Library path UI ────────────────────────────────────────────
+async function initLibraryPath() {
+  try {
+    const dir = await invoke('get_library_dir');
+    const el  = $('lib-path-display');
+    if (el) el.textContent = dir ? dir.split(/[\\/]/).slice(-2).join('/') : 'Not set';
+    if (el) el.title = dir || '';
+    if (!dir) showToast('No library folder set. Click "Change…" in the sidebar.', 'error');
+  } catch {}
+}
+
+$('lib-path-btn')?.addEventListener('click', async () => {
+  const path = await invoke('get_library_dir').catch(() => null);
+  const newPath = prompt('Enter path to your library folder:', path || '');
+  if (!newPath) return;
+  try {
+    await invoke('set_library_dir', { path: newPath });
+    const el = $('lib-path-display');
+    if (el) { el.textContent = newPath.split(/[\\/]/).slice(-2).join('/'); el.title = newPath; }
+    await loadEntries();
+    showToast('Library folder updated');
+  } catch (err) {
+    showToast('Error: ' + err, 'error');
+  }
+});
+
 wireEvents();
+initLibraryPath();
 loadEntries();

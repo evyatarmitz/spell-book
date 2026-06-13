@@ -889,19 +889,16 @@ body {
   border-top: 1px solid var(--border2);
 }
 
-.btn-stop-server {
-  width: 100%;
-  padding: 5px 10px;
-  background: transparent;
-  border: 1px solid #6e2323;
-  border-radius: var(--radius-sm);
-  color: #8b3a3a;
+.lib-path-block { width: 100%; }
+.lib-path-display {
   font-size: 11px;
-  font-family: var(--font-ui);
-  cursor: pointer;
-  transition: color 0.1s, border-color 0.1s;
+  color: var(--fg2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 2px 0 4px;
 }
-.btn-stop-server:hover { color: #f85149; border-color: #f85149; }
+.btn-sm { padding: 3px 8px; font-size: 11px; }
 
 /* ===== Prism overrides — keep our background ===== */
 pre.detail-source code[class*="language-"],

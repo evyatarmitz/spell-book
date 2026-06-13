@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spell Book</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="prism/prism-tomorrow.min.css">
 </head>
 <body>
 
@@ -41,7 +41,11 @@
 
     <button id="clear-filters" class="btn-clear-filters">Clear all filters</button>
     <div class="sidebar-footer">
-      <button id="stop-server-btn" class="btn-stop-server" title="Stops the Node process">⏹ Stop server</button>
+      <div class="lib-path-block">
+        <div class="filter-label">LIBRARY</div>
+        <div id="lib-path-display" class="lib-path-display">Not set</div>
+        <button id="lib-path-btn" class="btn-ghost btn-sm">Change…</button>
+      </div>
     </div>
   </aside>
 
@@ -114,11 +118,11 @@
   <!-- Toast container -->
   <div id="toast-container"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/prism.js" data-manual></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="prism/prism.js" data-manual></script>
+  <script src="prism/plugins/autoloader/prism-autoloader.min.js"></script>
   <script>
     if (typeof Prism !== 'undefined' && Prism.plugins?.autoloader) {
-      Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1/components/';
+      Prism.plugins.autoloader.languages_path = 'prism/components/';
     }
   </script>
   <script src="app.js"></script>
