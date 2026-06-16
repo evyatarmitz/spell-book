@@ -6,11 +6,11 @@ A native desktop app (Tauri/Rust) plus a CLI for scripting or AI agent use.
 
 ## Quick start
 
-**Windows — easiest way:**
-1. Download [`start.bat`](https://github.com/evyatarmitz/spell-book/releases/latest) (or clone the repo)
-2. Double-click it
+**Windows:**
+1. Go to [Releases](https://github.com/evyatarmitz/spell-book/releases/latest)
+2. Download `Spell-Book-1.0.0-setup.exe` (or the `.msi`) and run it
 
-That's it. No installs. `start.bat` downloads the app binary and CLI from the latest release and launches it. The `library/` folder is created automatically next to the app on first run.
+That's the standard install flow — Windows will show an "Unknown publisher" warning since the binary isn't code-signed; this is normal for small open-source projects, not a sign of tampering. The `library/` folder is created automatically next to the installed app on first run.
 
 **Building from source instead:**
 ```sh
@@ -44,7 +44,6 @@ spell-book/
 │   └── prism/           # Vendored syntax highlighter (offline)
 ├── tools/
 │   └── make_icons.py    # Regenerates src-tauri/icons/ from public/logo.png
-├── start.bat            # Downloads + launches the latest release
 ├── AI_README.md         # Onboarding doc for AI agents using the CLI
 └── library/             # Your library — created on first run, gitignored
     ├── index.json       # Catalog: one JSON object per entry
