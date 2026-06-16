@@ -8,7 +8,7 @@ A native desktop app (Tauri/Rust) plus a CLI for scripting or AI agent use.
 
 **Windows:**
 1. Go to [Releases](https://github.com/evyatarmitz/spell-book/releases/latest)
-2. Download `Spell-Book-1.0.0-setup.exe` (or the `.msi`) and run it
+2. Download the installer (`.exe`) and run it
 
 That's the standard install flow — Windows will show an "Unknown publisher" warning since the binary isn't code-signed; this is normal for small open-source projects, not a sign of tampering. The `library/` folder is created automatically next to the installed app on first run.
 
