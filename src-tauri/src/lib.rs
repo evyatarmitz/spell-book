@@ -1,11 +1,9 @@
-pub mod catalog;
-
 use std::collections::HashMap;
 use std::fs;
 use std::io::{Cursor, Write as IoWrite};
 use std::path::PathBuf;
 
-use catalog::*;
+use spellbook_core::*;
 use serde_json::Value;
 
 // ── Tauri commands ────────────────────────────────────────────────────────────

@@ -1,0 +1,12 @@
+[package]
+name = "sb"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "sb"
+path = "src/main.rs"
+
+[dependencies]
+spellbook-core = { path = "../core" }
+serde_json = "1"

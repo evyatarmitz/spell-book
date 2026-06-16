@@ -1,10 +1,11 @@
 # Personal library — lives outside the repo
 library/
 
-# Tauri build output
+# Build output (workspace target dir)
+/target/
 src-tauri/target/
 
-# Downloaded by start.bat when run in this folder
+# Stray copies if manually placed at repo root for testing
 /spell-book.exe
 /sb.exe
 

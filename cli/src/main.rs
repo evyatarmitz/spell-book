@@ -6,7 +6,7 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use spell_book_lib::catalog::*;
+use spellbook_core::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

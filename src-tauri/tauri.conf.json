@@ -1,5 +1,6 @@
 {
   "productName": "Spell Book",
+  "mainBinaryName": "spell-book",
   "version": "1.0.0",
   "identifier": "com.spellbook.library",
   "build": {
