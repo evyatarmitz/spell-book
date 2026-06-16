@@ -4,12 +4,14 @@ library/
 # Tauri build output
 src-tauri/target/
 
-# Leftover from old Node server
-.server.pid
+# Downloaded by start.bat when run in this folder
+/spell-book.exe
+/sb.exe
 
-# Node (only needed if someone uses npm tooling locally)
+# Node (only needed if someone uses npm tooling locally — not required to build)
 node_modules/
 npm-debug.log*
+package-lock.json
 
 # OS junk
 .DS_Store
