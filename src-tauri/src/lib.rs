@@ -193,6 +193,18 @@ async fn export_entries(ids: Vec<String>, app: tauri::AppHandle) -> Result<Strin
     }
 }
 
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+#[tauri::command]
+fn get_settings() -> spellbook_core::Settings {
+    spellbook_core::read_settings()
+}
+
+#[tauri::command]
+fn set_settings(settings: spellbook_core::Settings) -> Result<(), String> {
+    spellbook_core::write_settings(&settings)
+}
+
 // ── Updater ───────────────────────────────────────────────────────────────────
 
 #[derive(serde::Serialize)]
@@ -226,6 +238,49 @@ fn check_for_updates() -> Result<UpdateInfo, String> {
 }
 
 #[tauri::command]
+fn install_app_update(release_url: String, app: tauri::AppHandle) -> Result<(), String> {
+    use std::io::Read as IoRead;
+
+    // Fetch release JSON to find spell-book.exe asset
+    let api_url = format!(
+        "https://api.github.com/repos/{}/releases/latest", REPO
+    );
+    let resp: Value = ureq::get(&api_url)
+        .set("User-Agent", "spell-book-app")
+        .call().map_err(|e| format!("Network error: {}", e))?
+        .into_json().map_err(|e| format!("Parse error: {}", e))?;
+
+    let assets = resp["assets"].as_array().ok_or("No assets")?;
+    let asset = assets.iter()
+        .find(|a| a["name"].as_str() == Some("spell-book.exe"))
+        .ok_or("spell-book.exe not found in release assets")?;
+    let download_url = asset["browser_download_url"].as_str().ok_or("No download URL")?;
+
+    let mut reader = ureq::get(download_url)
+        .set("User-Agent", "spell-book-app")
+        .call().map_err(|e| format!("Download error: {}", e))?
+        .into_reader();
+
+    let exe_path = std::env::current_exe().map_err(|e| e.to_string())?;
+    let tmp_path = exe_path.with_extension("exe.new");
+    let old_path = exe_path.with_extension("exe.old");
+
+    let mut buf = Vec::new();
+    reader.read_to_end(&mut buf).map_err(|e| e.to_string())?;
+    fs::write(&tmp_path, &buf).map_err(|e| format!("Write error: {}", e))?;
+
+    if old_path.exists() { let _ = fs::remove_file(&old_path); }
+    fs::rename(&exe_path, &old_path).map_err(|e| format!("Rename error: {}", e))?;
+    fs::rename(&tmp_path, &exe_path).map_err(|e| format!("Install error: {}", e))?;
+    let _ = fs::remove_file(&old_path);
+
+    // Relaunch from the new binary, then exit
+    std::process::Command::new(&exe_path).spawn().map_err(|e| e.to_string())?;
+    app.exit(0);
+    Ok(())
+}
+
+#[tauri::command]
 fn open_url(url: String, app: tauri::AppHandle) -> Result<(), String> {
     use tauri_plugin_shell::ShellExt;
     app.shell().open(&url, None).map_err(|e| e.to_string())
@@ -241,7 +296,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_library_dir, set_library_dir,
             get_entries, get_entry, create_entry, update_entry, delete_entry,
-            export_entries, check_for_updates, open_url,
+            export_entries, check_for_updates, install_app_update, open_url,
+            get_settings, set_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

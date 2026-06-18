@@ -69,6 +69,25 @@ pub struct EntryInput {
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Settings {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dir: Option<String>,
+    /// "auto" = download and replace in place; "browser" = open release page
+    #[serde(default = "Settings::default_update_mode")]
+    pub update_mode: String,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self { dir: None, update_mode: Self::default_update_mode() }
+    }
+}
+
+impl Settings {
+    fn default_update_mode() -> String { "auto".into() }
+}
+
 pub fn config_path() -> PathBuf {
     dirs::home_dir()
         .unwrap_or_else(|| PathBuf::from("."))
@@ -76,30 +95,36 @@ pub fn config_path() -> PathBuf {
         .join("config.json")
 }
 
-/// Returns the configured library dir, or the default (`library/` next to the exe).
-pub fn read_library_dir() -> Option<PathBuf> {
-    // 1. Explicit override in ~/.spellbook/config.json
+pub fn read_settings() -> Settings {
     if let Ok(text) = fs::read_to_string(config_path()) {
-        if let Ok(val) = serde_json::from_str::<Value>(&text) {
-            if let Some(dir) = val["dir"].as_str().map(PathBuf::from) {
-                return Some(dir);
-            }
+        if let Ok(s) = serde_json::from_str::<Settings>(&text) {
+            return s;
         }
     }
-    // 2. Default: library/ next to the running executable
+    Settings::default()
+}
+
+pub fn write_settings(s: &Settings) -> Result<(), String> {
+    let cfg = config_path();
+    if let Some(p) = cfg.parent() { fs::create_dir_all(p).map_err(|e| e.to_string())?; }
+    let text = serde_json::to_string_pretty(s).map_err(|e| e.to_string())?;
+    fs::write(&cfg, text).map_err(|e| e.to_string())
+}
+
+/// Returns the configured library dir, or the default (`library/` next to the exe).
+pub fn read_library_dir() -> Option<PathBuf> {
+    if let Some(dir) = read_settings().dir {
+        return Some(PathBuf::from(dir));
+    }
+    // Default: library/ next to the running executable
     std::env::current_exe().ok()
         .and_then(|p| p.parent().map(|d| d.join("library")))
 }
 
 pub fn write_library_dir(dir: &Path) -> Result<(), String> {
-    let cfg = config_path();
-    if let Some(p) = cfg.parent() {
-        fs::create_dir_all(p).map_err(|e| e.to_string())?;
-    }
-    let mut map = serde_json::Map::new();
-    map.insert("dir".into(), Value::String(dir.to_string_lossy().into_owned()));
-    let text = serde_json::to_string_pretty(&Value::Object(map)).map_err(|e| e.to_string())?;
-    fs::write(&cfg, text).map_err(|e| e.to_string())
+    let mut s = read_settings();
+    s.dir = Some(dir.to_string_lossy().into_owned());
+    write_settings(&s)
 }
 
 pub fn require_library_dir() -> Result<PathBuf, String> {

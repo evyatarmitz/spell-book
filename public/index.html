@@ -46,11 +46,9 @@
         <div id="lib-path-display" class="lib-path-display">Not set</div>
         <button id="lib-path-btn" class="btn-ghost btn-sm">Change…</button>
       </div>
-      <div class="lib-path-block" style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)">
-        <div class="filter-label">VERSION</div>
-        <div id="update-version" class="lib-path-display" style="font-size:0.75rem;opacity:0.6">v1.1.0</div>
-        <button id="update-btn" class="btn-ghost btn-sm">Check for updates</button>
-        <div id="update-status" style="font-size:0.75rem;margin-top:0.4rem;display:none"></div>
+      <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:0.7rem;opacity:0.4">v1.1.2</span>
+        <button id="settings-btn" class="btn-icon" title="Settings" style="font-size:1rem">&#9881;</button>
       </div>
     </div>
   </aside>
@@ -106,6 +104,44 @@
           <button id="make-all-btn" class="btn-ghost">Make All</button>
         </div>
         <button id="modal-save" class="btn-primary">Save Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings modal -->
+  <div id="settings-overlay" class="hidden">
+    <div id="settings-modal" class="modal" style="max-width:420px">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button id="settings-close" class="btn-icon">&#x2715;</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:1.25rem">
+        <div>
+          <div class="filter-label" style="margin-bottom:0.4rem">LIBRARY FOLDER</div>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <div id="settings-lib-display" style="flex:1;font-size:0.8rem;opacity:0.7;word-break:break-all"></div>
+            <button id="settings-lib-btn" class="btn-ghost btn-sm">Change…</button>
+          </div>
+        </div>
+        <div>
+          <div class="filter-label" style="margin-bottom:0.4rem">UPDATES</div>
+          <div style="display:flex;flex-direction:column;gap:0.5rem">
+            <label style="display:flex;align-items:center;gap:0.6rem;cursor:pointer">
+              <input type="radio" name="update-mode" value="auto"> Auto-install (download &amp; replace in place)
+            </label>
+            <label style="display:flex;align-items:center;gap:0.6rem;cursor:pointer">
+              <input type="radio" name="update-mode" value="browser"> Open release page in browser
+            </label>
+          </div>
+          <div style="margin-top:0.75rem;display:flex;align-items:center;gap:0.75rem">
+            <button id="settings-check-updates" class="btn-ghost btn-sm">Check for updates</button>
+            <span id="settings-update-status" style="font-size:0.75rem"></span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="settings-cancel" class="btn-ghost">Cancel</button>
+        <button id="settings-save" class="btn-primary">Save</button>
       </div>
     </div>
   </div>

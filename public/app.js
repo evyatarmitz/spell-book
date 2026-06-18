@@ -3576,34 +3576,92 @@ $('lib-path-btn')?.addEventListener('click', async () => {
   }
 });
 
-$('update-btn')?.addEventListener('click', async () => {
+// ── Settings modal ────────────────────────────────────────────────────────────
+
+let _pendingSettings = {};
+
+async function openSettings() {
   const invoke = getInvoke();
   if (!invoke) return;
-  const btn = $('update-btn');
-  const status = $('update-status');
+  const s = await invoke('get_settings').catch(() => ({}));
+  _pendingSettings = { ...s };
+
+  const libDisplay = $('settings-lib-display');
+  if (libDisplay) libDisplay.textContent = s.dir || '(default — next to app)';
+
+  const mode = s.update_mode || 'auto';
+  document.querySelectorAll('input[name="update-mode"]').forEach(r => {
+    r.checked = r.value === mode;
+  });
+
+  $('settings-update-status').textContent = '';
+  $('settings-overlay').classList.remove('hidden');
+}
+
+$('settings-btn')?.addEventListener('click', openSettings);
+$('settings-close')?.addEventListener('click', () => $('settings-overlay').classList.add('hidden'));
+$('settings-cancel')?.addEventListener('click', () => $('settings-overlay').classList.add('hidden'));
+
+$('settings-lib-btn')?.addEventListener('click', async () => {
+  const invoke = getInvoke();
+  if (!invoke) return;
+  const current = await invoke('get_library_dir').catch(() => null);
+  const newPath = prompt('Enter path to your library folder:', current || '');
+  if (!newPath) return;
+  try {
+    await invoke('set_library_dir', { path: newPath });
+    _pendingSettings.dir = newPath;
+    const el = $('settings-lib-display');
+    if (el) el.textContent = newPath;
+    const sidebar = $('lib-path-display');
+    if (sidebar) { sidebar.textContent = newPath.split(/[\\/]/).slice(-2).join('/'); sidebar.title = newPath; }
+    await loadEntries();
+    showToast('Library folder updated');
+  } catch (err) {
+    showToast('Error: ' + err, 'error');
+  }
+});
+
+$('settings-save')?.addEventListener('click', async () => {
+  const invoke = getInvoke();
+  if (!invoke) return;
+  const mode = document.querySelector('input[name="update-mode"]:checked')?.value || 'auto';
+  try {
+    await invoke('set_settings', { settings: { ..._pendingSettings, update_mode: mode } });
+    $('settings-overlay').classList.add('hidden');
+    showToast('Settings saved');
+  } catch (err) {
+    showToast('Error saving settings: ' + err, 'error');
+  }
+});
+
+$('settings-check-updates')?.addEventListener('click', async () => {
+  const invoke = getInvoke();
+  if (!invoke) return;
+  const btn = $('settings-check-updates');
+  const status = $('settings-update-status');
   btn.disabled = true;
   btn.textContent = 'Checking…';
-  status.style.display = 'none';
+  status.textContent = '';
   try {
     const info = await invoke('check_for_updates');
     if (info.up_to_date) {
       status.textContent = 'Already up to date.';
-      status.style.color = 'var(--text-muted, #888)';
     } else {
-      status.innerHTML = `v${info.latest} available — <a href="#" id="update-dl-link" style="color:var(--accent)">Download</a>`;
-      status.style.color = 'var(--text-muted, #888)';
-      document.getElementById('update-dl-link')?.addEventListener('click', e => {
-        e.preventDefault();
-        invoke('open_url', { url: info.release_url }).catch(() =>
-          window.__TAURI__?.shell?.open(info.release_url)
-        );
-      });
+      const mode = document.querySelector('input[name="update-mode"]:checked')?.value || 'auto';
+      if (mode === 'auto') {
+        status.textContent = `v${info.latest} found — installing…`;
+        await invoke('install_app_update', { releaseUrl: info.release_url });
+      } else {
+        status.innerHTML = `v${info.latest} available — <a href="#" id="upd-link" style="color:var(--accent)">Download</a>`;
+        document.getElementById('upd-link')?.addEventListener('click', e => {
+          e.preventDefault();
+          invoke('open_url', { url: info.release_url });
+        });
+      }
     }
-    status.style.display = 'block';
   } catch (err) {
     status.textContent = 'Error: ' + err;
-    status.style.color = 'var(--danger, #f85149)';
-    status.style.display = 'block';
   } finally {
     btn.disabled = false;
     btn.textContent = 'Check for updates';
