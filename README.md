@@ -31,11 +31,11 @@ Each entry is one function or self-contained system. Code stored here is meant t
 
 ```
 spell-book/
-├── src-tauri/           # Rust app — Tauri commands + CLI binary
-│   ├── src/
-│   │   ├── catalog.rs   # Shared catalog logic (used by both app and CLI)
-│   │   ├── lib.rs       # Tauri commands
-│   │   └── bin/sb.rs    # CLI entry point
+├── core/                # Shared catalog logic (used by both app and CLI)
+├── cli/                 # sb CLI binary
+├── src-tauri/           # Tauri desktop app
+│   ├── src/lib.rs       # Tauri commands
+│   ├── nsis/            # Installer hooks (PATH registration)
 │   └── tauri.conf.json
 ├── public/              # Desktop UI (HTML/CSS/JS, rendered by Tauri's webview)
 │   ├── index.html

@@ -9,6 +9,8 @@ sb search <query>       Search by name, language, tags, or contract description
 sb get <name|id>        Get full source for an entry
 sb add <entry.json>     Add a new entry (see format below)
 sb init-ai              (one-time) copies this file into the current folder
+sb update               Update sb to the latest release
+sb app                  Launch the Spell Book desktop app
 ```
 
 ## Searching
