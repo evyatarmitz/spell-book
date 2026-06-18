@@ -76,11 +76,14 @@ pub struct Settings {
     /// "auto" = download and replace in place; "browser" = open release page
     #[serde(default = "Settings::default_update_mode")]
     pub update_mode: String,
+    /// Default field values pre-filled when creating a new entry
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_entry: Option<serde_json::Value>,
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Self { dir: None, update_mode: Self::default_update_mode() }
+        Self { dir: None, update_mode: Self::default_update_mode(), default_entry: None }
     }
 }
 

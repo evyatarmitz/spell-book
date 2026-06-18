@@ -403,15 +403,21 @@ function showTagSuggestions(input) {
 }
 
 // ── Modal ──────────────────────────────────────────────────────
-function openModal(entry = null) {
-  modalMode    = entry ? 'edit' : 'add';
+function openModal(entry = null, mode = null) {
+  modalMode    = mode || (entry ? 'edit' : 'add');
   modalEntryId = entry?.id || null;
-  idAutoMode   = !entry;
+  idAutoMode   = modalMode === 'add';
   foundBlocks = []; blockTypeIdx = 0; blockItemIdx = 0;
   importedFileName = ''; importedFileCode = '';
   blockDrafts = {}; checkedBlocks = new Set();
-  $('modal-title').textContent = entry ? 'Edit Entry' : 'New Entry';
-  $('modal-form').innerHTML = buildForm(entry);
+  $('modal-title').textContent = modalMode === 'defaults' ? 'Default Entry Values' : (entry && modalMode === 'edit' ? 'Edit Entry' : 'New Entry');
+  $('modal-form').innerHTML = buildForm(modalMode === 'defaults' ? (entry || {}) : entry);
+  // Hide ID row in defaults mode — an ID default makes no sense
+  if (modalMode === 'defaults') {
+    const idRow = $('modal-id')?.closest('.form-row') ?? $('modal-id')?.parentElement;
+    if (idRow) idRow.style.display = 'none';
+  }
+  $('modal-save').textContent = modalMode === 'defaults' ? 'Save Defaults' : 'Save Entry';
   updateBatchButtons();
   $('modal-overlay').classList.remove('hidden');
   ($('modal-name') ?? $('modal-id'))?.focus();
@@ -3216,6 +3222,34 @@ async function createChecked() {
 function closeModal() { $('modal-overlay').classList.add('hidden'); }
 
 async function saveModal() {
+  // Defaults mode — save form values as default_entry in settings
+  if (modalMode === 'defaults') {
+    const invoke = getInvoke();
+    if (!invoke) return;
+    const defaults = {
+      type:     $('modal-type')?.value || '',
+      language: $('modal-language')?.value.trim() || '',
+      status:   $('modal-status')?.value || '',
+      origin:   $('modal-origin')?.value.trim() || '',
+      touched:  $('modal-touched')?.value.trim() || '',
+      tags:     $('modal-tags')?.value.trim() || '',
+      contract: $('modal-contract')?.value.trim() || '',
+      inputs:   $('modal-inputs')?.value.trim() || '',
+      outputs:  $('modal-outputs')?.value.trim() || '',
+      scars:    $('modal-scars')?.value.trim() || '',
+      notes:    $('modal-notes')?.value.trim() || '',
+    };
+    // Strip empty fields so they don't override typed values
+    Object.keys(defaults).forEach(k => { if (!defaults[k]) delete defaults[k]; });
+    try {
+      const s = await invoke('get_settings');
+      await invoke('set_settings', { settings: { ...s, default_entry: defaults } });
+      closeModal();
+      showToast('Default entry values saved');
+    } catch (err) { showToast('Error: ' + err, 'error'); }
+    return;
+  }
+
   // If any blocks are checked → batch-create all of them instead
   if (modalMode === 'add' && checkedBlocks.size > 0) { await createChecked(); return; }
 
@@ -3364,7 +3398,11 @@ function wireEvents() {
 
 
   // Topbar + detail + selection
-  $('add-btn').addEventListener('click', () => openModal());
+  $('add-btn').addEventListener('click', async () => {
+    const invoke = getInvoke();
+    const defaults = invoke ? (await invoke('get_settings').catch(() => ({}))).default_entry || {} : {};
+    openModal(Object.keys(defaults).length ? defaults : null, 'add');
+  });
   $('sort-select').addEventListener('change', e => { sortKey = e.target.value; applyFilters(); });
   $('close-detail').addEventListener('click', closeDetail);
   $('panel-overlay').addEventListener('click', closeDetail);
@@ -3666,6 +3704,13 @@ $('settings-check-updates')?.addEventListener('click', async () => {
     btn.disabled = false;
     btn.textContent = 'Check for updates';
   }
+});
+
+$('settings-defaults-btn')?.addEventListener('click', async () => {
+  const invoke = getInvoke();
+  $('settings-overlay').classList.add('hidden');
+  const defaults = invoke ? (await invoke('get_settings').catch(() => ({}))).default_entry || {} : {};
+  openModal(Object.keys(defaults).length ? defaults : null, 'defaults');
 });
 
 wireEvents();
