@@ -3576,6 +3576,40 @@ $('lib-path-btn')?.addEventListener('click', async () => {
   }
 });
 
+$('update-btn')?.addEventListener('click', async () => {
+  const invoke = getInvoke();
+  if (!invoke) return;
+  const btn = $('update-btn');
+  const status = $('update-status');
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  status.style.display = 'none';
+  try {
+    const info = await invoke('check_for_updates');
+    if (info.up_to_date) {
+      status.textContent = 'Already up to date.';
+      status.style.color = 'var(--text-muted, #888)';
+    } else {
+      status.innerHTML = `v${info.latest} available — <a href="#" id="update-dl-link" style="color:var(--accent)">Download</a>`;
+      status.style.color = 'var(--text-muted, #888)';
+      document.getElementById('update-dl-link')?.addEventListener('click', e => {
+        e.preventDefault();
+        invoke('open_url', { url: info.release_url }).catch(() =>
+          window.__TAURI__?.shell?.open(info.release_url)
+        );
+      });
+    }
+    status.style.display = 'block';
+  } catch (err) {
+    status.textContent = 'Error: ' + err;
+    status.style.color = 'var(--danger, #f85149)';
+    status.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Check for updates';
+  }
+});
+
 wireEvents();
 initLibraryPath();
 loadEntries();

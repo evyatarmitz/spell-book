@@ -4,6 +4,7 @@
 
 use std::env;
 use std::fs;
+use std::io::Read as IoRead;
 use std::path::PathBuf;
 
 use spellbook_core::*;
@@ -19,6 +20,7 @@ fn main() {
         "add"     => cmd_add(args.get(2).map(|s| s.as_str())),
         "search"  => cmd_search(args[2..].join(" ")),
         "get"     => cmd_get(args.get(2).map(|s| s.as_str())),
+        "update"  => cmd_update(),
         _         => { print_help(); return; }
     };
 
@@ -153,6 +155,63 @@ fn cmd_get(name_or_id: Option<&str>) -> Result<(), String> {
     Ok(())
 }
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+const REPO: &str = "evyatarmitz/spell-book";
+
+fn cmd_update() -> Result<(), String> {
+    println!("Checking for updates (current: v{})...", VERSION);
+
+    let url = format!("https://api.github.com/repos/{}/releases/latest", REPO);
+    let resp: serde_json::Value = ureq::get(&url)
+        .set("User-Agent", "sb-cli")
+        .call()
+        .map_err(|e| format!("Network error: {}", e))?
+        .into_json()
+        .map_err(|e| format!("Parse error: {}", e))?;
+
+    let tag = resp["tag_name"].as_str().ok_or("No tag_name in response")?;
+    let latest = tag.trim_start_matches('v');
+
+    if latest == VERSION {
+        println!("Already up to date.");
+        return Ok(());
+    }
+
+    println!("New version available: v{}", latest);
+
+    // Find the sb.exe asset
+    let assets = resp["assets"].as_array().ok_or("No assets in response")?;
+    let asset = assets.iter()
+        .find(|a| a["name"].as_str() == Some("sb.exe"))
+        .ok_or("sb.exe not found in release assets")?;
+    let download_url = asset["browser_download_url"].as_str()
+        .ok_or("No download URL")?;
+
+    println!("Downloading {}...", download_url);
+    let mut reader = ureq::get(download_url)
+        .set("User-Agent", "sb-cli")
+        .call()
+        .map_err(|e| format!("Download error: {}", e))?
+        .into_reader();
+
+    let exe_path = env::current_exe().map_err(|e| e.to_string())?;
+    let tmp_path = exe_path.with_extension("exe.new");
+    let old_path = exe_path.with_extension("exe.old");
+
+    let mut buf = Vec::new();
+    reader.read_to_end(&mut buf).map_err(|e| e.to_string())?;
+    fs::write(&tmp_path, &buf).map_err(|e| format!("Write error: {}", e))?;
+
+    // Rename current → .old, new → current (works on Windows while running)
+    if old_path.exists() { let _ = fs::remove_file(&old_path); }
+    fs::rename(&exe_path, &old_path).map_err(|e| format!("Rename error: {}", e))?;
+    fs::rename(&tmp_path, &exe_path).map_err(|e| format!("Install error: {}", e))?;
+    let _ = fs::remove_file(&old_path);
+
+    println!("Updated to v{}. Open a new terminal to use the new version.", latest);
+    Ok(())
+}
+
 fn print_help() {
     println!(r#"
 Spell Book CLI
@@ -164,5 +223,6 @@ Spell Book CLI
   sb add <entry.json>   Add a new entry from a JSON file
   sb search <query>     Search by name, language, tags, or contract
   sb get <name|id>      Print source for an entry
+  sb update             Check for a new release and self-update
 "#);
 }

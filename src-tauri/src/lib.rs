@@ -6,6 +6,9 @@ use std::path::PathBuf;
 use spellbook_core::*;
 use serde_json::Value;
 
+const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+const REPO: &str = "evyatarmitz/spell-book";
+
 // ── Tauri commands ────────────────────────────────────────────────────────────
 
 #[tauri::command]
@@ -190,16 +193,55 @@ async fn export_entries(ids: Vec<String>, app: tauri::AppHandle) -> Result<Strin
     }
 }
 
+// ── Updater ───────────────────────────────────────────────────────────────────
+
+#[derive(serde::Serialize)]
+pub struct UpdateInfo {
+    current: String,
+    latest: String,
+    up_to_date: bool,
+    release_url: String,
+}
+
+#[tauri::command]
+fn check_for_updates() -> Result<UpdateInfo, String> {
+    let url = format!("https://api.github.com/repos/{}/releases/latest", REPO);
+    let resp: Value = ureq::get(&url)
+        .set("User-Agent", "spell-book-app")
+        .call()
+        .map_err(|e| format!("Network error: {}", e))?
+        .into_json()
+        .map_err(|e| format!("Parse error: {}", e))?;
+
+    let tag = resp["tag_name"].as_str().ok_or("No tag_name in response")?;
+    let latest = tag.trim_start_matches('v').to_string();
+    let release_url = resp["html_url"].as_str().unwrap_or("").to_string();
+
+    Ok(UpdateInfo {
+        up_to_date: latest == APP_VERSION,
+        current: APP_VERSION.to_string(),
+        latest,
+        release_url,
+    })
+}
+
+#[tauri::command]
+fn open_url(url: String, app: tauri::AppHandle) -> Result<(), String> {
+    use tauri_plugin_shell::ShellExt;
+    app.shell().open(&url, None).map_err(|e| e.to_string())
+}
+
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             get_library_dir, set_library_dir,
             get_entries, get_entry, create_entry, update_entry, delete_entry,
-            export_entries,
+            export_entries, check_for_updates, open_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
