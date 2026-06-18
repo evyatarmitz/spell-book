@@ -4,7 +4,7 @@
 
 use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use spellbook_core::*;
 
@@ -51,34 +51,16 @@ fn cmd_status() -> Result<(), String> {
     Ok(())
 }
 
+const AI_README: &str = include_str!("../../AI_README.md");
+
 fn cmd_init_ai() -> Result<(), String> {
-    // Find AI_README.md next to the sb binary, or next to the exe
-    let exe_dir = env::current_exe()
-        .ok()
-        .and_then(|p| p.parent().map(Path::to_path_buf))
-        .unwrap_or_else(|| PathBuf::from("."));
-
-    // Walk up from exe dir to find AI_README.md (handles dev vs release paths)
-    let src = find_ai_readme(&exe_dir)
-        .ok_or("AI_README.md not found. Make sure it is in the project root.")?;
-
     let dest = env::current_dir()
         .map_err(|e| e.to_string())?
         .join("AI_README.md");
 
-    fs::copy(&src, &dest).map_err(|e| e.to_string())?;
-    println!("Copied AI_README.md to: {}", dest.display());
+    fs::write(&dest, AI_README).map_err(|e| e.to_string())?;
+    println!("Wrote AI_README.md to: {}", dest.display());
     Ok(())
-}
-
-fn find_ai_readme(start: &Path) -> Option<PathBuf> {
-    let mut dir = start.to_path_buf();
-    for _ in 0..6 {
-        let candidate = dir.join("AI_README.md");
-        if candidate.exists() { return Some(candidate); }
-        if !dir.pop() { break; }
-    }
-    None
 }
 
 fn cmd_add(path: Option<&str>) -> Result<(), String> {
