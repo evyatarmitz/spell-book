@@ -21,6 +21,7 @@ fn main() {
         "search"  => cmd_search(args[2..].join(" ")),
         "get"     => cmd_get(args.get(2).map(|s| s.as_str())),
         "update"  => cmd_update(),
+        "app"     => cmd_app(),
         _         => { print_help(); return; }
     };
 
@@ -155,6 +156,23 @@ fn cmd_get(name_or_id: Option<&str>) -> Result<(), String> {
     Ok(())
 }
 
+fn cmd_app() -> Result<(), String> {
+    let exe_dir = env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(PathBuf::from))
+        .unwrap_or_else(|| PathBuf::from("."));
+
+    let app = exe_dir.join("spell-book.exe");
+    if !app.exists() {
+        return Err(format!("spell-book.exe not found at {}", app.display()));
+    }
+    std::process::Command::new(&app)
+        .spawn()
+        .map_err(|e| format!("Failed to launch: {}", e))?;
+    println!("Launching Spell Book…");
+    Ok(())
+}
+
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const REPO: &str = "evyatarmitz/spell-book";
 
@@ -224,5 +242,6 @@ Spell Book CLI
   sb search <query>     Search by name, language, tags, or contract
   sb get <name|id>      Print source for an entry
   sb update             Check for a new release and self-update
+  sb app                Launch the Spell Book desktop app
 "#);
 }

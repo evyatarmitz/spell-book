@@ -82,6 +82,7 @@ sb add <entry.json>   Add a new entry from a JSON file
 sb search <query>     Search by name, language, tags, or contract
 sb get <name|id>      Print source for an entry
 sb update             Check for a new release and self-update
+sb app                Launch the Spell Book desktop app
 ```
 
 ## Catalog schema
