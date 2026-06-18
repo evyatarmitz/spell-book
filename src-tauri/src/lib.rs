@@ -263,19 +263,38 @@ fn install_app_update(release_url: String, app: tauri::AppHandle) -> Result<(), 
 
     let exe_path = std::env::current_exe().map_err(|e| e.to_string())?;
     let tmp_path = exe_path.with_extension("exe.new");
-    let old_path = exe_path.with_extension("exe.old");
 
     let mut buf = Vec::new();
     reader.read_to_end(&mut buf).map_err(|e| e.to_string())?;
     fs::write(&tmp_path, &buf).map_err(|e| format!("Write error: {}", e))?;
 
-    if old_path.exists() { let _ = fs::remove_file(&old_path); }
-    fs::rename(&exe_path, &old_path).map_err(|e| format!("Rename error: {}", e))?;
-    fs::rename(&tmp_path, &exe_path).map_err(|e| format!("Install error: {}", e))?;
-    let _ = fs::remove_file(&old_path);
+    // Can't rename the running exe while it holds its own file lock.
+    // Write a batch script that waits for this process to exit, swaps the
+    // files, then relaunches — then exit the app so the script can proceed.
+    let pid = std::process::id();
+    let old_path = exe_path.with_extension("exe.old");
+    let bat_path = exe_path.with_extension("update.bat");
+    let bat = format!(
+        "@echo off\r\n\
+         :wait\r\n\
+         tasklist /fi \"PID eq {pid}\" 2>nul | find \"{pid}\" >nul\r\n\
+         if not errorlevel 1 ( timeout /t 1 /nobreak >nul & goto wait )\r\n\
+         if exist \"{old}\" del /f \"{old}\"\r\n\
+         move /y \"{tmp}\" \"{exe}\"\r\n\
+         start \"\" \"{exe}\"\r\n\
+         del /f \"%~f0\"\r\n",
+        pid = pid,
+        old = old_path.display(),
+        tmp = tmp_path.display(),
+        exe = exe_path.display(),
+    );
+    fs::write(&bat_path, &bat).map_err(|e| format!("Batch write error: {}", e))?;
 
-    // Relaunch from the new binary, then exit
-    std::process::Command::new(&exe_path).spawn().map_err(|e| e.to_string())?;
+    std::process::Command::new("cmd")
+        .args(["/c", "start", "", "/min", bat_path.to_str().unwrap_or("")])
+        .spawn()
+        .map_err(|e| format!("Launch updater error: {}", e))?;
+
     app.exit(0);
     Ok(())
 }
