@@ -8,7 +8,7 @@ This is a local code library. You can search it, retrieve entries, and add new o
 sb search <query>       Search by name, language, tags, or contract description
 sb get <name|id>        Get full source for an entry
 sb add <entry.json>     Add a new entry (see format below)
-sb init-ai              (one-time) copies this file into the library folder
+sb init-ai              (one-time) copies this file into the current folder
 ```
 
 ## Searching
