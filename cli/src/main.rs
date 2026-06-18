@@ -20,8 +20,9 @@ fn main() {
         "add"     => cmd_add(args.get(2).map(|s| s.as_str())),
         "search"  => cmd_search(args[2..].join(" ")),
         "get"     => cmd_get(args.get(2).map(|s| s.as_str())),
-        "update"  => cmd_update(),
-        "app"     => cmd_app(),
+        "update"     => cmd_update(),
+        "update-app" => cmd_update_app(),
+        "app"        => cmd_app(),
         _         => { print_help(); return; }
     };
 
@@ -156,6 +157,66 @@ fn cmd_get(name_or_id: Option<&str>) -> Result<(), String> {
     Ok(())
 }
 
+fn find_app_exe() -> Option<PathBuf> {
+    // 1. Next to sb.exe (standard installer layout)
+    if let Some(exe_dir) = env::current_exe().ok().and_then(|p| p.parent().map(PathBuf::from)) {
+        let candidate = exe_dir.join("spell-book.exe");
+        if candidate.exists() { return Some(candidate); }
+    }
+    // 2. Registry: NSIS installer writes install path to HKCU\Software\spellbook\Spell Book
+    #[cfg(windows)] {
+        use winreg::enums::*;
+        use winreg::RegKey;
+        if let Ok(key) = RegKey::predef(HKEY_CURRENT_USER).open_subkey("Software\\spellbook\\Spell Book") {
+            if let Ok(dir) = key.get_value::<String, _>("") {
+                let candidate = PathBuf::from(dir).join("spell-book.exe");
+                if candidate.exists() { return Some(candidate); }
+            }
+        }
+    }
+    None
+}
+
+fn download_replace(asset_name: &str, dest: &PathBuf) -> Result<(), String> {
+    let url = format!("https://api.github.com/repos/{}/releases/latest", REPO);
+    let resp: serde_json::Value = ureq::get(&url)
+        .set("User-Agent", "sb-cli")
+        .call().map_err(|e| format!("Network error: {}", e))?
+        .into_json().map_err(|e| format!("Parse error: {}", e))?;
+
+    let assets = resp["assets"].as_array().ok_or("No assets in response")?;
+    let asset = assets.iter()
+        .find(|a| a["name"].as_str() == Some(asset_name))
+        .ok_or_else(|| format!("{} not found in release assets", asset_name))?;
+    let download_url = asset["browser_download_url"].as_str().ok_or("No download URL")?;
+
+    println!("Downloading {}...", asset_name);
+    let mut reader = ureq::get(download_url)
+        .set("User-Agent", "sb-cli")
+        .call().map_err(|e| format!("Download error: {}", e))?
+        .into_reader();
+
+    let tmp = dest.with_extension("exe.new");
+    let old = dest.with_extension("exe.old");
+    let mut buf = Vec::new();
+    reader.read_to_end(&mut buf).map_err(|e| e.to_string())?;
+    fs::write(&tmp, &buf).map_err(|e| format!("Write error: {}", e))?;
+    if old.exists() { let _ = fs::remove_file(&old); }
+    fs::rename(dest, &old).map_err(|e| format!("Rename error: {}", e))?;
+    fs::rename(&tmp, dest).map_err(|e| format!("Install error: {}", e))?;
+    let _ = fs::remove_file(&old);
+    Ok(())
+}
+
+fn cmd_update_app() -> Result<(), String> {
+    let app_exe = find_app_exe()
+        .ok_or("spell-book.exe not found. Is Spell Book installed?")?;
+    println!("Updating app at {}...", app_exe.display());
+    download_replace("spell-book.exe", &app_exe)?;
+    println!("App updated. Relaunch Spell Book to use the new version.");
+    Ok(())
+}
+
 fn cmd_app() -> Result<(), String> {
     let exe_dir = env::current_exe()
         .ok()
@@ -182,10 +243,8 @@ fn cmd_update() -> Result<(), String> {
     let url = format!("https://api.github.com/repos/{}/releases/latest", REPO);
     let resp: serde_json::Value = ureq::get(&url)
         .set("User-Agent", "sb-cli")
-        .call()
-        .map_err(|e| format!("Network error: {}", e))?
-        .into_json()
-        .map_err(|e| format!("Parse error: {}", e))?;
+        .call().map_err(|e| format!("Network error: {}", e))?
+        .into_json().map_err(|e| format!("Parse error: {}", e))?;
 
     let tag = resp["tag_name"].as_str().ok_or("No tag_name in response")?;
     let latest = tag.trim_start_matches('v');
@@ -197,36 +256,19 @@ fn cmd_update() -> Result<(), String> {
 
     println!("New version available: v{}", latest);
 
-    // Find the sb.exe asset
-    let assets = resp["assets"].as_array().ok_or("No assets in response")?;
-    let asset = assets.iter()
-        .find(|a| a["name"].as_str() == Some("sb.exe"))
-        .ok_or("sb.exe not found in release assets")?;
-    let download_url = asset["browser_download_url"].as_str()
-        .ok_or("No download URL")?;
+    let sb_exe = env::current_exe().map_err(|e| e.to_string())?;
+    download_replace("sb.exe", &sb_exe)?;
+    println!("CLI updated. Open a new terminal to use the new version.");
 
-    println!("Downloading {}...", download_url);
-    let mut reader = ureq::get(download_url)
-        .set("User-Agent", "sb-cli")
-        .call()
-        .map_err(|e| format!("Download error: {}", e))?
-        .into_reader();
+    // Also update the app if we can find it
+    if let Some(app_exe) = find_app_exe() {
+        println!("Also updating app at {}...", app_exe.display());
+        match download_replace("spell-book.exe", &app_exe) {
+            Ok(_) => println!("App updated. Relaunch Spell Book to use the new version."),
+            Err(e) => println!("Note: could not update app automatically ({}). Run 'sb update-app' or reinstall.", e),
+        }
+    }
 
-    let exe_path = env::current_exe().map_err(|e| e.to_string())?;
-    let tmp_path = exe_path.with_extension("exe.new");
-    let old_path = exe_path.with_extension("exe.old");
-
-    let mut buf = Vec::new();
-    reader.read_to_end(&mut buf).map_err(|e| e.to_string())?;
-    fs::write(&tmp_path, &buf).map_err(|e| format!("Write error: {}", e))?;
-
-    // Rename current → .old, new → current (works on Windows while running)
-    if old_path.exists() { let _ = fs::remove_file(&old_path); }
-    fs::rename(&exe_path, &old_path).map_err(|e| format!("Rename error: {}", e))?;
-    fs::rename(&tmp_path, &exe_path).map_err(|e| format!("Install error: {}", e))?;
-    let _ = fs::remove_file(&old_path);
-
-    println!("Updated to v{}. Open a new terminal to use the new version.", latest);
     Ok(())
 }
 
@@ -241,7 +283,8 @@ Spell Book CLI
   sb add <entry.json>   Add a new entry from a JSON file
   sb search <query>     Search by name, language, tags, or contract
   sb get <name|id>      Print source for an entry
-  sb update             Check for a new release and self-update
+  sb update             Update CLI and app to the latest release
+  sb update-app         Update only the desktop app
   sb app                Launch the Spell Book desktop app
 "#);
 }
