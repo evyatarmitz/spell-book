@@ -250,22 +250,20 @@ fn cmd_update() -> Result<(), String> {
     let latest = tag.trim_start_matches('v');
 
     if latest == VERSION {
-        println!("Already up to date.");
-        return Ok(());
+        println!("CLI already up to date.");
+    } else {
+        println!("New version available: v{}", latest);
+        let sb_exe = env::current_exe().map_err(|e| e.to_string())?;
+        download_replace("sb.exe", &sb_exe)?;
+        println!("CLI updated. Open a new terminal to use the new version.");
     }
 
-    println!("New version available: v{}", latest);
-
-    let sb_exe = env::current_exe().map_err(|e| e.to_string())?;
-    download_replace("sb.exe", &sb_exe)?;
-    println!("CLI updated. Open a new terminal to use the new version.");
-
-    // Also update the app if we can find it
+    // Always update the app if we can find it
     if let Some(app_exe) = find_app_exe() {
-        println!("Also updating app at {}...", app_exe.display());
+        println!("Updating app at {}...", app_exe.display());
         match download_replace("spell-book.exe", &app_exe) {
             Ok(_) => println!("App updated. Relaunch Spell Book to use the new version."),
-            Err(e) => println!("Note: could not update app automatically ({}). Run 'sb update-app' or reinstall.", e),
+            Err(e) => println!("Note: could not update app ({}). Run 'sb update-app' or reinstall.", e),
         }
     }
 
