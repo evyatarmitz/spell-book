@@ -338,8 +338,6 @@ fn spindex_dir() -> Option<PathBuf> {
 }
 
 fn pip_install_deps(sidecar: &PathBuf) -> Result<(), String> {
-    let req = sidecar.join("requirements.txt");
-    if !req.exists() { return Ok(()); }
     let already = std::process::Command::new("python")
         .args(["-c", "import torch, transformers, numpy"])
         .output()
@@ -347,11 +345,17 @@ fn pip_install_deps(sidecar: &PathBuf) -> Result<(), String> {
         .unwrap_or(false);
     if already { return Ok(()); }
     println!("Installing Python dependencies...");
-    let out = std::process::Command::new("python")
-        .args(["-m", "pip", "install", "-r", req.to_str().unwrap_or("requirements.txt")])
-        .current_dir(sidecar)
-        .output()
-        .map_err(|e| format!("pip install failed: {}", e))?;
+    let req = sidecar.join("requirements.txt");
+    let out = if req.exists() {
+        std::process::Command::new("python")
+            .args(["-m", "pip", "install", "-r", req.to_str().unwrap_or("requirements.txt")])
+            .current_dir(sidecar)
+            .output()
+    } else {
+        std::process::Command::new("python")
+            .args(["-m", "pip", "install", "torch", "transformers", "numpy"])
+            .output()
+    }.map_err(|e| format!("pip install failed: {}", e))?;
     if out.status.success() {
         println!("Dependencies installed.");
         Ok(())
