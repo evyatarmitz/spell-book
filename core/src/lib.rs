@@ -79,11 +79,14 @@ pub struct Settings {
     /// Default field values pre-filled when creating a new entry
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_entry: Option<serde_json::Value>,
+    /// Active Elephant module profile: None = not installed, "tiny" or "quality"
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub elephant_profile: Option<String>,
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Self { dir: None, update_mode: Self::default_update_mode(), default_entry: None }
+        Self { dir: None, update_mode: Self::default_update_mode(), default_entry: None, elephant_profile: None }
     }
 }
 

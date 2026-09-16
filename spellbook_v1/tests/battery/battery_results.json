@@ -1,0 +1,802 @@
+[
+  {
+    "id": "n01",
+    "lang": "typescript",
+    "expect": "match",
+    "need": "I have a ship flying around and I want the camera to trail behind it and settle smoothly instead of snapping.",
+    "blind_note": "expect some camera-follow/smoothing helper",
+    "expansion": "The general principle is to use interpolation between key frames to create a smooth transition, ensuring the camera path follows the ship's movement without abrupt changes.",
+    "hits": [
+      {
+        "id": "camera-system-ti-ts",
+        "name": "CameraSystem",
+        "language": "typescript",
+        "score": 0.5366,
+        "sim": 0.4866,
+        "importance": 0.027
+      },
+      {
+        "id": "rendering-mod-ti-rust",
+        "name": "RenderingPlugin / SpaceCamera / FpsCamera",
+        "language": "rust",
+        "score": 0.4796,
+        "sim": 0.4296,
+        "importance": 0.027
+      },
+      {
+        "id": "input-mod-ti-rust",
+        "name": "InputPlugin (ship_piloting_input / player_shoot_input / fps_movement_input)",
+        "language": "rust",
+        "score": 0.4144,
+        "sim": 0.3644,
+        "importance": 0.04
+      },
+      {
+        "id": "fov-controller-ti-ts",
+        "name": "FovController",
+        "language": "typescript",
+        "score": 0.394,
+        "sim": 0.344,
+        "importance": 0.026
+      },
+      {
+        "id": "ship-layout-generator-ti-ts",
+        "name": "ShipLayoutGenerator",
+        "language": "typescript",
+        "score": 0.3909,
+        "sim": 0.3409,
+        "importance": 0.031
+      }
+    ]
+  },
+  {
+    "id": "n02",
+    "lang": "rust",
+    "expect": "match",
+    "need": "Carve out an underground cavern the player can actually walk through, as real 3D geometry.",
+    "blind_note": "expect a cave/mesh generator",
+    "expansion": "The general principle is to create a procedurally generated environment where complex structures like underground caverns are dynamically generated based on algorithms, ensuring they fit seamlessly into the game's world and can be interacted with as realistic 3D geometry.",
+    "hits": [
+      {
+        "id": "cave-mesh-gen-ti-rust",
+        "name": "stream_cave_chunks / build_cave_mesh",
+        "language": "rust",
+        "score": 0.5478,
+        "sim": 0.4978,
+        "importance": 0.026
+      },
+      {
+        "id": "planet-noise-ti-rust",
+        "name": "PlanetNoise",
+        "language": "rust",
+        "score": 0.4668,
+        "sim": 0.4168,
+        "importance": 0.038
+      },
+      {
+        "id": "city-layout-gen-ti-rust",
+        "name": "generate / generate_floor_plan (CityLayout)",
+        "language": "rust",
+        "score": 0.4281,
+        "sim": 0.3781,
+        "importance": 0.037
+      },
+      {
+        "id": "terrain-chunk-streaming-ti-rust",
+        "name": "stream_chunks_system / build_chunk_mesh",
+        "language": "rust",
+        "score": 0.3841,
+        "sim": 0.3341,
+        "importance": 0.027
+      },
+      {
+        "id": "surface-building-ti-rust",
+        "name": "BuildMode / place_block / destroy_block",
+        "language": "rust",
+        "score": 0.3676,
+        "sim": 0.3176,
+        "importance": 0.021
+      }
+    ]
+  },
+  {
+    "id": "n03",
+    "lang": "rust",
+    "expect": "match",
+    "need": "As the player flies over a planet, keep loading nearby ground and unloading far ground so memory stays flat.",
+    "blind_note": "expect terrain/chunk streaming",
+    "expansion": "The general principle is dynamic data management, where resources are allocated and deallocated based on proximity and relevance, ensuring efficient use of memory.",
+    "hits": [
+      {
+        "id": "ecs-system-ti-ts",
+        "name": "AbstractSystem",
+        "language": "typescript",
+        "score": 0.326,
+        "sim": 0.276,
+        "importance": 0.042
+      },
+      {
+        "id": "resource-flow-ti-ts",
+        "name": "ResourceFlowSystem",
+        "language": "typescript",
+        "score": 0.3062,
+        "sim": 0.2562,
+        "importance": 0.035
+      },
+      {
+        "id": "gbi-processor-ti-ts",
+        "name": "GbiProcessor",
+        "language": "typescript",
+        "score": 0.3018,
+        "sim": 0.2518,
+        "importance": 0.026
+      },
+      {
+        "id": "comms-bus-ti-rust",
+        "name": "CommsBus / Signal / tick_comms / order_understood",
+        "language": "rust",
+        "score": 0.2882,
+        "sim": 0.2382,
+        "importance": 0.041
+      },
+      {
+        "id": "sb-core-lib",
+        "name": "Spell Book Core Library",
+        "language": "rust",
+        "score": 0.2847,
+        "sim": 0.2347,
+        "importance": 0.055
+      }
+    ]
+  },
+  {
+    "id": "n04",
+    "lang": "typescript",
+    "expect": "match",
+    "need": "I want to run a bunch of per-frame update routines over only the objects that have the right pieces of data attached.",
+    "blind_note": "expect an ECS / systems runner",
+    "expansion": "The general principle is to use a filtering mechanism to selectively apply operations based on object attributes or conditions.",
+    "hits": [
+      {
+        "id": "eventfilter-ti-ts",
+        "name": "EventFilter",
+        "language": "typescript",
+        "score": 0.4021,
+        "sim": 0.3521,
+        "importance": 0.034
+      },
+      {
+        "id": "stochastic-selector-ti-ts",
+        "name": "StochasticSelector",
+        "language": "typescript",
+        "score": 0.3855,
+        "sim": 0.3355,
+        "importance": 0.026
+      },
+      {
+        "id": "grammar-analyzer-ti-ts",
+        "name": "GrammarAnalyzer",
+        "language": "typescript",
+        "score": 0.3463,
+        "sim": 0.2963,
+        "importance": 0.023
+      },
+      {
+        "id": "targeting-system-ti-ts",
+        "name": "TargetingSystem",
+        "language": "typescript",
+        "score": 0.3457,
+        "sim": 0.2957,
+        "importance": 0.033
+      },
+      {
+        "id": "symbol-table-ti-ts",
+        "name": "SymbolTable",
+        "language": "typescript",
+        "score": 0.3393,
+        "sim": 0.2893,
+        "importance": 0.027
+      }
+    ]
+  },
+  {
+    "id": "n05",
+    "lang": "typescript",
+    "expect": "match",
+    "need": "Give me a small 3D vector type with add, scale, dot, cross and normalize.",
+    "blind_note": "sanity: expect a vector math type",
+    "expansion": "The general principle is to define an algebraic structure that supports basic operations such as addition, scalar multiplication, dot product, cross product, and normalization through a set of axioms and operations that can be applied universally across different mathematical and computational domains.",
+    "hits": [
+      {
+        "id": "vector3-ti-ts",
+        "name": "Vector3Math",
+        "language": "typescript",
+        "score": 0.4327,
+        "sim": 0.3827,
+        "importance": 0.035
+      },
+      {
+        "id": "unit-contract-with-inheritance-py",
+        "name": "Contract",
+        "language": "python",
+        "score": 0.3089,
+        "sim": 0.2589,
+        "importance": 0.023
+      },
+      {
+        "id": "sb-core-lib",
+        "name": "Spell Book Core Library",
+        "language": "rust",
+        "score": 0.3077,
+        "sim": 0.2577,
+        "importance": 0.055
+      },
+      {
+        "id": "ship-ti-rust",
+        "name": "apply_velocity_system",
+        "language": "rust",
+        "score": 0.2843,
+        "sim": 0.2343,
+        "importance": 0.032
+      },
+      {
+        "id": "transform-ti-ts",
+        "name": "TransformComponent",
+        "language": "typescript",
+        "score": 0.2647,
+        "sim": 0.2147,
+        "importance": 0.03
+      }
+    ]
+  },
+  {
+    "id": "n06",
+    "lang": "rust",
+    "expect": "match",
+    "need": "An automated gun emplacement needs to pick which of several hostiles in range to fire at.",
+    "blind_note": "expect target-selection / turret logic",
+    "expansion": "The general principle is to use an optimal selection algorithm based on a scoring function that evaluates each hostile's threat level, prioritizing those with the highest scores for engagement.",
+    "hits": [
+      {
+        "id": "targeting-system-ti-ts",
+        "name": "TargetingSystem",
+        "language": "typescript",
+        "score": 0.4798,
+        "sim": 0.4298,
+        "importance": 0.033
+      },
+      {
+        "id": "combat-system-ti-ts",
+        "name": "CombatSystem",
+        "language": "typescript",
+        "score": 0.362,
+        "sim": 0.312,
+        "importance": 0.026
+      },
+      {
+        "id": "faction-ai-ti-rust",
+        "name": "tick_faction_ai / FactionAiState",
+        "language": "rust",
+        "score": 0.3443,
+        "sim": 0.2943,
+        "importance": 0.027
+      },
+      {
+        "id": "goal-system-ti-ts",
+        "name": "GoalSystem",
+        "language": "typescript",
+        "score": 0.3337,
+        "sim": 0.2837,
+        "importance": 0.035
+      },
+      {
+        "id": "interior-combat-ti-rust",
+        "name": "InteriorEnemy / interior_enemy_ai / fps_shoot / spawn_interior_enemies",
+        "language": "rust",
+        "score": 0.3242,
+        "sim": 0.2742,
+        "importance": 0.022
+      }
+    ]
+  },
+  {
+    "id": "n07",
+    "lang": "rust",
+    "expect": "match",
+    "need": "Let the player disable and seize an enemy vessel, then keep the captured ships in some kind of hangar.",
+    "blind_note": "expect capture + carrier/bay handling",
+    "expansion": "The general principle is strategic resource management and control through controlled containment.",
+    "hits": [
+      {
+        "id": "power-subsystem-ti-ts",
+        "name": "PowerGrid",
+        "language": "typescript",
+        "score": 0.3169,
+        "sim": 0.2669,
+        "importance": 0.027
+      },
+      {
+        "id": "faction-war-ti-rust",
+        "name": "WarState / tick_war",
+        "language": "rust",
+        "score": 0.3135,
+        "sim": 0.2635,
+        "importance": 0.04
+      },
+      {
+        "id": "resource-flow-ti-ts",
+        "name": "ResourceFlowSystem",
+        "language": "typescript",
+        "score": 0.3001,
+        "sim": 0.2501,
+        "importance": 0.035
+      },
+      {
+        "id": "power-grid-panel-ti-rust",
+        "name": "power::draw",
+        "language": "rust",
+        "score": 0.299,
+        "sim": 0.249,
+        "importance": 0.026
+      },
+      {
+        "id": "faction-resources-ti-ts",
+        "name": "FactionResourcePool",
+        "language": "typescript",
+        "score": 0.2957,
+        "sim": 0.2457,
+        "importance": 0.026
+      }
+    ]
+  },
+  {
+    "id": "n08",
+    "lang": "typescript",
+    "expect": "match",
+    "need": "Two solid rectangles overlapped this frame; push them apart along the shortest direction.",
+    "blind_note": "expect AABB resolve / MTV",
+    "expansion": "The general principle is to align the rectangles such that their overlapping region is minimized by moving them along the axis of least resistance, which is the direction of their least shared dimension.",
+    "hits": [
+      {
+        "id": "aabb-ti-ts",
+        "name": "AABB",
+        "language": "typescript",
+        "score": 0.3853,
+        "sim": 0.3353,
+        "importance": 0.407
+      },
+      {
+        "id": "bounds-baker-ti-ts",
+        "name": "BoundsBaker",
+        "language": "typescript",
+        "score": 0.3451,
+        "sim": 0.2951,
+        "importance": 0.032
+      },
+      {
+        "id": "spatial-layout-resolver-ti-ts",
+        "name": "SpatialLayoutResolver",
+        "language": "typescript",
+        "score": 0.3298,
+        "sim": 0.2798,
+        "importance": 0.025
+      },
+      {
+        "id": "aabb-resolver-ti-ts",
+        "name": "AabbResolver",
+        "language": "typescript",
+        "score": 0.3232,
+        "sim": 0.2732,
+        "importance": 0.39
+      },
+      {
+        "id": "spatial-grid-ti-ts",
+        "name": "SpatialGridSystem",
+        "language": "typescript",
+        "score": 0.2823,
+        "sim": 0.2323,
+        "importance": 0.028
+      }
+    ]
+  },
+  {
+    "id": "n09",
+    "lang": "rust",
+    "expect": "closest",
+    "need": "Simulate liquid sloshing around inside a sealed tank as the tank tilts and spins.",
+    "blind_note": "probably no exact fluid sim; closest maybe a physics/atmosphere piece",
+    "expansion": "The general principle is to model the fluid dynamics using computational fluid dynamics (CFD) simulations, incorporating the principles of conservation of mass and momentum, and applying boundary conditions that account for the tank's motion.",
+    "hits": [
+      {
+        "id": "ship-ti-rust",
+        "name": "apply_velocity_system",
+        "language": "rust",
+        "score": 0.312,
+        "sim": 0.262,
+        "importance": 0.032
+      },
+      {
+        "id": "ship-mover-ti-ts",
+        "name": "ShipMoverSystem",
+        "language": "typescript",
+        "score": 0.276,
+        "sim": 0.226,
+        "importance": 0.032
+      },
+      {
+        "id": "spawner-ti-rust",
+        "name": "populate_system_on_jump",
+        "language": "rust",
+        "score": 0.2307,
+        "sim": 0.1807,
+        "importance": 0.019
+      },
+      {
+        "id": "cave-mesh-gen-ti-rust",
+        "name": "stream_cave_chunks / build_cave_mesh",
+        "language": "rust",
+        "score": 0.2248,
+        "sim": 0.1748,
+        "importance": 0.026
+      },
+      {
+        "id": "power-grid-system-ti-rust",
+        "name": "PowerGrid",
+        "language": "rust",
+        "score": 0.2226,
+        "sim": 0.1726,
+        "importance": 0.045
+      }
+    ]
+  },
+  {
+    "id": "n10",
+    "lang": "typescript",
+    "expect": "closest",
+    "need": "Players edit their base; I need a proper undo/redo history for their actions.",
+    "blind_note": "probably no undo stack; closest maybe a command/serialization piece",
+    "expansion": "The general principle is maintaining a transactional log of all changes made, allowing for each action to be either committed or rolled back independently.",
+    "hits": [
+      {
+        "id": "consequence-tracker-ti-ts",
+        "name": "ConsequenceTracker",
+        "language": "typescript",
+        "score": 0.4091,
+        "sim": 0.3591,
+        "importance": 0.038
+      },
+      {
+        "id": "deterministic-id-factory-py",
+        "name": "IdFactory",
+        "language": "python",
+        "score": 0.391,
+        "sim": 0.341,
+        "importance": 0.032
+      },
+      {
+        "id": "progression-log-ti-rust",
+        "name": "CaptainsLog",
+        "language": "rust",
+        "score": 0.3765,
+        "sim": 0.3265,
+        "importance": 0.034
+      },
+      {
+        "id": "ecs-system-ti-ts",
+        "name": "AbstractSystem",
+        "language": "typescript",
+        "score": 0.3598,
+        "sim": 0.3098,
+        "importance": 0.042
+      },
+      {
+        "id": "jsonl-append-log-py",
+        "name": "JsonlRunLog",
+        "language": "python",
+        "score": 0.351,
+        "sim": 0.301,
+        "importance": 0.026
+      }
+    ]
+  },
+  {
+    "id": "n11",
+    "lang": "rust",
+    "expect": "closest",
+    "need": "Smooth over the jitter between a client's predicted movement and the authoritative server position.",
+    "blind_note": "probably single-player; likely no netcode; test graceful nearest",
+    "expansion": "The general principle is to implement a predictive model that continuously estimates the client's next position based on historical data and current behavior, with a feedback loop to adjust predictions in real-time based on discrepancies with the authoritative server's position updates.",
+    "hits": [
+      {
+        "id": "order-system-ti-ts",
+        "name": "OrderSystem",
+        "language": "typescript",
+        "score": 0.3197,
+        "sim": 0.2697,
+        "importance": 0.028
+      },
+      {
+        "id": "faction-ai-ti-rust",
+        "name": "tick_faction_ai / FactionAiState",
+        "language": "rust",
+        "score": 0.3143,
+        "sim": 0.2643,
+        "importance": 0.027
+      },
+      {
+        "id": "ecs-system-ti-ts",
+        "name": "AbstractSystem",
+        "language": "typescript",
+        "score": 0.2947,
+        "sim": 0.2447,
+        "importance": 0.042
+      },
+      {
+        "id": "faction-war-ti-rust",
+        "name": "WarState / tick_war",
+        "language": "rust",
+        "score": 0.2911,
+        "sim": 0.2411,
+        "importance": 0.04
+      },
+      {
+        "id": "tickclock-ti-ts",
+        "name": "TickClock",
+        "language": "typescript",
+        "score": 0.2886,
+        "sim": 0.2386,
+        "importance": 0.039
+      }
+    ]
+  },
+  {
+    "id": "n12",
+    "lang": "typescript",
+    "expect": "closest",
+    "need": "Swap every UI label to a different language at runtime from translation tables.",
+    "blind_note": "probably no i18n; closest maybe a UI panel piece",
+    "expansion": "The general principle is dynamic content adaptation through real-time data retrieval and substitution.",
+    "hits": [
+      {
+        "id": "sb-app-js",
+        "name": "Spell Book Frontend JS",
+        "language": "javascript",
+        "score": 0.2915,
+        "sim": 0.2415,
+        "importance": 0.043
+      },
+      {
+        "id": "deterministic-id-factory-py",
+        "name": "IdFactory",
+        "language": "python",
+        "score": 0.2562,
+        "sim": 0.2062,
+        "importance": 0.032
+      },
+      {
+        "id": "persistence-mod-ti-rust",
+        "name": "SaveData / save_game / load_game / PersistencePlugin",
+        "language": "rust",
+        "score": 0.2183,
+        "sim": 0.1683,
+        "importance": 0.021
+      },
+      {
+        "id": "progression-titles-ti-rust",
+        "name": "PlayerTitles",
+        "language": "rust",
+        "score": 0.2023,
+        "sim": 0.1523,
+        "importance": 0.039
+      },
+      {
+        "id": "stochastic-selector-ti-ts",
+        "name": "StochasticSelector",
+        "language": "typescript",
+        "score": 0.2015,
+        "sim": 0.1515,
+        "importance": 0.026
+      }
+    ]
+  },
+  {
+    "id": "n13",
+    "lang": "none",
+    "expect": "none",
+    "need": "Parse a PDF invoice and pull out the line items, quantities and totals.",
+    "blind_note": "out of domain: should bring nothing / very low score",
+    "expansion": "The general principle is pattern recognition and data extraction through automated text analysis and machine learning algorithms.",
+    "hits": [
+      {
+        "id": "sb-app-js",
+        "name": "Spell Book Frontend JS",
+        "language": "javascript",
+        "score": 0.2357,
+        "sim": 0.1857,
+        "importance": 0.043
+      },
+      {
+        "id": "text-block-compose-py",
+        "name": "textblock",
+        "language": "python",
+        "score": 0.2214,
+        "sim": 0.1714,
+        "importance": 0.03
+      },
+      {
+        "id": "grammar-analyzer-ti-ts",
+        "name": "GrammarAnalyzer",
+        "language": "typescript",
+        "score": 0.2134,
+        "sim": 0.1634,
+        "importance": 0.023
+      },
+      {
+        "id": "sb-app-html",
+        "name": "Spell Book Frontend HTML",
+        "language": "html",
+        "score": 0.2095,
+        "sim": 0.1595,
+        "importance": 0.056
+      },
+      {
+        "id": "stochastic-selector-ti-ts",
+        "name": "StochasticSelector",
+        "language": "typescript",
+        "score": 0.1921,
+        "sim": 0.1421,
+        "importance": 0.026
+      }
+    ]
+  },
+  {
+    "id": "n14",
+    "lang": "none",
+    "expect": "none",
+    "need": "Refresh an expired OAuth2 bearer token and retry the HTTPS request that failed.",
+    "blind_note": "out of domain: auth/networking",
+    "expansion": "The general principle is to implement a retry mechanism with token refresh capabilities to handle expired tokens and subsequent HTTP request failures.",
+    "hits": [
+      {
+        "id": "continuity-anchor-ti-ts",
+        "name": "ContinuityAnchorComponent",
+        "language": "typescript",
+        "score": 0.3444,
+        "sim": 0.2944,
+        "importance": 0.02
+      },
+      {
+        "id": "continuity-manager-ti-ts",
+        "name": "ContinuityManager",
+        "language": "typescript",
+        "score": 0.3404,
+        "sim": 0.2904,
+        "importance": 0.032
+      },
+      {
+        "id": "continuity-system-ti-ts",
+        "name": "ContinuitySystem",
+        "language": "typescript",
+        "score": 0.3346,
+        "sim": 0.2846,
+        "importance": 0.033
+      },
+      {
+        "id": "respawn-calculator-ti-ts",
+        "name": "RespawnCalculator",
+        "language": "typescript",
+        "score": 0.3266,
+        "sim": 0.2766,
+        "importance": 0.03
+      },
+      {
+        "id": "order-system-ti-ts",
+        "name": "OrderSystem",
+        "language": "typescript",
+        "score": 0.3242,
+        "sim": 0.2742,
+        "importance": 0.028
+      }
+    ]
+  },
+  {
+    "id": "n15",
+    "lang": "none",
+    "expect": "none",
+    "need": "Train a gradient-boosted decision tree on a CSV and report feature importances.",
+    "blind_note": "out of domain: ML",
+    "expansion": "The general principle is ensemble learning, where multiple models, each contributing to the final prediction through iterative refinement, collectively improve predictive performance and provide insights into feature importance.",
+    "hits": [
+      {
+        "id": "progression-tech-knowledge-ti-rust",
+        "name": "TechKnowledge",
+        "language": "rust",
+        "score": 0.243,
+        "sim": 0.193,
+        "importance": 0.026
+      },
+      {
+        "id": "faction-ai-ti-rust",
+        "name": "tick_faction_ai / FactionAiState",
+        "language": "rust",
+        "score": 0.2428,
+        "sim": 0.1928,
+        "importance": 0.027
+      },
+      {
+        "id": "progression-plugin-ti-rust",
+        "name": "ProgressionPlugin",
+        "language": "rust",
+        "score": 0.2228,
+        "sim": 0.1728,
+        "importance": 0.03
+      },
+      {
+        "id": "utility-ai-system-ti-ts",
+        "name": "UtilityAISystem",
+        "language": "typescript",
+        "score": 0.2176,
+        "sim": 0.1676,
+        "importance": 0.032
+      },
+      {
+        "id": "battle-converter-ti-ts",
+        "name": "BattleConverter",
+        "language": "typescript",
+        "score": 0.2141,
+        "sim": 0.1641,
+        "importance": 0.033
+      }
+    ]
+  },
+  {
+    "id": "n16",
+    "lang": "none",
+    "expect": "none",
+    "need": "Detect human faces in a photograph and blur them out.",
+    "blind_note": "out of domain: computer vision",
+    "expansion": "The general principle is to use computer vision algorithms to identify patterns characteristic of human faces within an image and then apply a blurring effect to those identified regions.",
+    "hits": [
+      {
+        "id": "hitscan-resolver-ti-ts",
+        "name": "HitscanResolverSystem",
+        "language": "typescript",
+        "score": 0.2059,
+        "sim": 0.1559,
+        "importance": 0.026
+      },
+      {
+        "id": "damage-indicator-ti-ts",
+        "name": "DamageIndicator",
+        "language": "typescript",
+        "score": 0.2055,
+        "sim": 0.1555,
+        "importance": 0.027
+      },
+      {
+        "id": "atmosphere-fog-ti-rust",
+        "name": "update_atmosphere",
+        "language": "rust",
+        "score": 0.2047,
+        "sim": 0.1547,
+        "importance": 0.027
+      },
+      {
+        "id": "frustum-culler-ti-ts",
+        "name": "FrustumCuller",
+        "language": "typescript",
+        "score": 0.198,
+        "sim": 0.148,
+        "importance": 0.024
+      },
+      {
+        "id": "sb-app-css",
+        "name": "Spell Book Frontend CSS",
+        "language": "css",
+        "score": 0.1712,
+        "sim": 0.1212,
+        "importance": 0.066
+      }
+    ]
+  }
+]

@@ -1,0 +1,30 @@
+{"id": "n01", "expect": "match", "area": "camera", "need": "A ship flies around and I want the camera to trail behind it and settle smoothly instead of snapping.", "obvious_query": "camera follow"}
+{"id": "n02", "expect": "match", "area": "terrain", "need": "Carve an underground cavern the player can walk through, as real 3D geometry.", "obvious_query": "cave"}
+{"id": "n03", "expect": "match", "area": "terrain", "need": "As the player flies over a planet, keep loading nearby ground and dropping far ground so memory stays flat.", "obvious_query": "terrain streaming"}
+{"id": "n04", "expect": "match", "area": "ecs", "need": "Run per-frame update routines over only the entities that carry the right set of components.", "obvious_query": "system update"}
+{"id": "n05", "expect": "match", "area": "math", "need": "A small 3D vector type with add, scale, dot, cross and normalize.", "obvious_query": "vector"}
+{"id": "n06", "expect": "match", "area": "combat", "need": "An automated gun needs to choose which of several hostiles in range to shoot.", "obvious_query": "targeting"}
+{"id": "n07", "expect": "match", "area": "combat", "need": "Let the player disable and seize an enemy vessel, then store the captured ships in a hangar.", "obvious_query": "capture ship"}
+{"id": "n08", "expect": "match", "area": "physics", "need": "Two solid rectangles overlapped this frame; push them apart the shortest way.", "obvious_query": "collision resolve"}
+{"id": "n09", "expect": "match", "area": "math", "need": "Represent and compose 3D rotations without gimbal lock.", "obvious_query": "quaternion"}
+{"id": "n10", "expect": "match", "area": "physics", "need": "Quickly find which nearby objects a given object might be touching, without checking everything.", "obvious_query": "spatial grid"}
+{"id": "n11", "expect": "match", "area": "player", "need": "Move a walking player around, sliding along walls instead of passing through them.", "obvious_query": "character controller"}
+{"id": "n12", "expect": "match", "area": "rendering", "need": "Skip drawing objects that are outside what the camera can see.", "obvious_query": "frustum cull"}
+{"id": "n13", "expect": "match", "area": "terrain", "need": "Generate the bumpy height of a planet surface procedurally so it looks natural.", "obvious_query": "planet noise"}
+{"id": "n14", "expect": "match", "area": "terrain", "need": "Let players dig into and destroy chunks of the ground.", "obvious_query": "voxel"}
+{"id": "n15", "expect": "match", "area": "input", "need": "Map keyboard and mouse into flying a ship and walking on foot.", "obvious_query": "input flight"}
+{"id": "n16", "expect": "match", "area": "systems", "need": "Distribute limited power among a ship's subsystems and cut them when supply drops.", "obvious_query": "power grid"}
+{"id": "n17", "expect": "match", "area": "player", "need": "Bring a ship in to dock at a station and lock it in place.", "obvious_query": "docking"}
+{"id": "n18", "expect": "match", "area": "persistence", "need": "Save the whole game state to disk and load it back later.", "obvious_query": "save load"}
+{"id": "n19", "expect": "match", "area": "progression", "need": "A research tree the player unlocks over time to gain new abilities.", "obvious_query": "tech tree"}
+{"id": "n20", "expect": "match", "area": "ai", "need": "Give each faction a brain that decides what to do each tick.", "obvious_query": "faction ai"}
+{"id": "n21", "expect": "closest", "area": "physics", "need": "Simulate liquid sloshing inside a sealed tank as the tank tilts and spins.", "obvious_query": "fluid"}
+{"id": "n22", "expect": "closest", "area": "ui", "need": "Players edit their base; I need an undo/redo history of their actions.", "obvious_query": "undo"}
+{"id": "n23", "expect": "closest", "area": "netcode", "need": "Smooth the jitter between a client's predicted movement and the server's authoritative position.", "obvious_query": "netcode"}
+{"id": "n24", "expect": "closest", "area": "ui", "need": "Swap every UI label to another language at runtime from translation tables.", "obvious_query": "localization"}
+{"id": "n25", "expect": "closest", "area": "ai", "need": "Find the shortest walkable path across a grid avoiding obstacles.", "obvious_query": "pathfinding"}
+{"id": "n26", "expect": "none", "area": "out", "need": "Parse a PDF invoice and pull out the line items, quantities and totals.", "obvious_query": "pdf invoice"}
+{"id": "n27", "expect": "none", "area": "out", "need": "Refresh an expired OAuth2 bearer token and retry the failed HTTPS request.", "obvious_query": "oauth token"}
+{"id": "n28", "expect": "none", "area": "out", "need": "Train a gradient-boosted decision tree on a CSV and report feature importances.", "obvious_query": "gradient boosting"}
+{"id": "n29", "expect": "none", "area": "out", "need": "Detect human faces in a photograph and blur them out.", "obvious_query": "face detection"}
+{"id": "n30", "expect": "none", "area": "out", "need": "Transcode a video file to H.264 and write it back out.", "obvious_query": "video transcode"}

@@ -23,6 +23,7 @@ fn main() {
         "update"     => cmd_update(),
         "update-app" => cmd_update_app(),
         "app"        => cmd_app(),
+        "find"       => cmd_find(if args.len() > 2 { Some(args[2..].join(" ")) } else { None }),
         _         => { print_help(); return; }
     };
 
@@ -270,6 +271,49 @@ fn cmd_update() -> Result<(), String> {
     Ok(())
 }
 
+fn spindex_dir() -> Option<PathBuf> {
+    let exe_dir = env::current_exe().ok()?.parent().map(PathBuf::from)?;
+    let p = exe_dir.join("spellbook_v1");
+    if p.exists() { Some(p) } else { None }
+}
+
+fn cmd_find(problem: Option<String>) -> Result<(), String> {
+    let problem = problem.ok_or("Usage: sb find <problem description>")?;
+    let s = read_settings();
+    let profile = s.elephant_profile.ok_or(
+        "Elephant is not installed. Enable it in Spell Book Settings → Modules."
+    )?;
+    let sidecar = spindex_dir().ok_or("spindex not found next to sb.exe")?;
+    let elephant_home = sidecar.parent().unwrap().join("elephant");
+    let lib = read_library_dir()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let print_hits = r#"
+import sys; sys.path.insert(0,'.')
+from spindex import api
+hits = api.find(PROBLEM, LIB)
+if not hits:
+    print('No matches.')
+else:
+    for i, h in enumerate(hits):
+        print(f"{i+1}. {h['name']} [{h['id']}] {h['language']}")
+        c = h.get('contract','')
+        if c: print(f"   {c[:100]}")
+"#;
+    let script = print_hits
+        .replace("PROBLEM", &format!("{:?}", problem))
+        .replace("LIB",     &format!("{:?}", lib));
+    let out = std::process::Command::new("python")
+        .args(["-c", &script])
+        .current_dir(&sidecar)
+        .env("SPINDEX_MODEL_PROFILE", &profile)
+        .env("ELEPHANT_HOME", &elephant_home)
+        .status()
+        .map_err(|e| format!("Failed to run python: {}", e))?;
+    if !out.success() { return Err("spindex find failed".into()); }
+    Ok(())
+}
+
 fn print_help() {
     println!(r#"
 Spell Book CLI
@@ -280,6 +324,7 @@ Spell Book CLI
   sb init-ai            Copy AI_README.md into the current folder
   sb add <entry.json>   Add a new entry from a JSON file
   sb search <query>     Search by name, language, tags, or contract
+  sb find <problem>     Semantic search via Elephant (requires module)
   sb get <name|id>      Print source for an entry
   sb update             Update CLI and app to the latest release
   sb update-app         Update only the desktop app

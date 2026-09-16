@@ -42,7 +42,7 @@
     <button id="clear-filters" class="btn-clear-filters">Clear all filters</button>
     <div class="sidebar-footer">
       <div style="padding-top:1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:0.7rem;opacity:0.4">v1.1.5</span>
+        <span style="font-size:0.7rem;opacity:0.4">v1.2.0</span>
         <button id="settings-btn" class="btn-icon" title="Settings" style="font-size:1rem">&#9881;</button>
       </div>
     </div>
@@ -59,9 +59,14 @@
         <option value="status">Status</option>
         <option value="language">Language</option>
       </select>
+      <div id="elephant-search-wrap" class="hidden" style="display:none;align-items:center;gap:0.4rem">
+        <input id="elephant-input" type="text" class="search-input" placeholder="🐘 Find by problem…" autocomplete="off" style="width:220px">
+        <button id="elephant-go" class="btn-ghost btn-sm">Find</button>
+      </div>
       <button id="add-btn" class="btn-primary">+ New Entry</button>
     </header>
 
+    <div id="elephant-results" class="hidden"></div>
     <div id="cards-grid"></div>
   </div>
 
@@ -112,6 +117,17 @@
       </div>
       <div class="modal-body" style="display:flex;flex-direction:column;gap:1.25rem">
         <div>
+          <div class="filter-label" style="margin-bottom:0.4rem">MODULES</div>
+          <div id="settings-elephant-section">
+            <div id="settings-elephant-status" style="font-size:0.8rem;opacity:0.7;margin-bottom:0.5rem"></div>
+            <div style="display:flex;gap:0.5rem">
+              <button id="settings-elephant-change" class="btn-ghost btn-sm">Change module…</button>
+              <button id="settings-elephant-remove" class="btn-ghost btn-sm hidden">Remove Elephant</button>
+              <button id="settings-elephant-sync" class="btn-ghost btn-sm hidden">Re-sync index</button>
+            </div>
+          </div>
+        </div>
+        <div>
           <div class="filter-label" style="margin-bottom:0.4rem">NEW ENTRY DEFAULTS</div>
           <div style="display:flex;gap:0.5rem;align-items:center">
             <span style="font-size:0.8rem;opacity:0.7;flex:1">Pre-fill fields when creating a new entry</span>
@@ -144,6 +160,85 @@
       <div class="modal-footer">
         <button id="settings-cancel" class="btn-ghost">Cancel</button>
         <button id="settings-save" class="btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- First-run wizard -->
+  <div id="wizard-overlay" class="hidden">
+    <div id="wizard" class="modal" style="max-width:480px">
+      <!-- Page 1: Library folder -->
+      <div id="wizard-p1">
+        <div class="modal-header"><h2>Welcome to Spell Book</h2></div>
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:1rem">
+          <p style="margin:0;font-size:0.9rem;opacity:0.8">First, point Spell Book at your code library folder. This is where your spells are stored.</p>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <div id="wizard-lib-display" style="flex:1;font-size:0.8rem;opacity:0.6;word-break:break-all">No folder selected</div>
+            <button id="wizard-lib-btn" class="btn-ghost btn-sm">Browse…</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="wizard-p1-skip" class="btn-ghost">Skip</button>
+          <button id="wizard-p1-next" class="btn-primary" disabled>Next →</button>
+        </div>
+      </div>
+      <!-- Page 2: Modules -->
+      <div id="wizard-p2" class="hidden">
+        <div class="modal-header"><h2>Modules</h2></div>
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:1rem">
+          <p style="margin:0;font-size:0.9rem;opacity:0.8">Elephant is a semantic search engine — find spells by describing the problem, not by keywords.</p>
+          <div style="display:flex;flex-direction:column;gap:0.75rem">
+            <label id="wizard-card-quality" class="module-card">
+              <input type="radio" name="elephant-profile" value="quality">
+              <div class="module-card-body">
+                <div class="module-card-title">🐘 Elephant <span class="module-badge">~2.5 GB</span></div>
+                <div class="module-card-desc">MiniLM + Qwen-3B — highest recall. GPU-friendly, CPU works too.</div>
+              </div>
+            </label>
+            <label id="wizard-card-tiny" class="module-card">
+              <input type="radio" name="elephant-profile" value="tiny">
+              <div class="module-card-body">
+                <div class="module-card-title">🐘 Thin Elephant <span class="module-badge">~90 MB</span></div>
+                <div class="module-card-desc">MiniLM only — fast, no GPU needed. Great for most libraries.</div>
+              </div>
+            </label>
+          </div>
+          <p style="margin:0;font-size:0.75rem;opacity:0.5">Model weights download on first search. You can change this later in Settings.</p>
+        </div>
+        <div class="modal-footer">
+          <button id="wizard-p2-skip" class="btn-ghost">Skip for now</button>
+          <button id="wizard-p2-done" class="btn-primary">Finish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module picker (reused from Settings) -->
+  <div id="module-picker-overlay" class="hidden">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <h2>Choose Elephant profile</h2>
+        <button id="module-picker-close" class="btn-icon">&#x2715;</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:0.75rem">
+        <label class="module-card">
+          <input type="radio" name="elephant-profile-picker" value="quality">
+          <div class="module-card-body">
+            <div class="module-card-title">🐘 Elephant <span class="module-badge">~2.5 GB</span></div>
+            <div class="module-card-desc">MiniLM + Qwen-3B — highest recall. GPU-friendly.</div>
+          </div>
+        </label>
+        <label class="module-card">
+          <input type="radio" name="elephant-profile-picker" value="tiny">
+          <div class="module-card-body">
+            <div class="module-card-title">🐘 Thin Elephant <span class="module-badge">~90 MB</span></div>
+            <div class="module-card-desc">MiniLM only — fast, no GPU needed.</div>
+          </div>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button id="module-picker-cancel" class="btn-ghost">Cancel</button>
+        <button id="module-picker-save" class="btn-primary">Apply</button>
       </div>
     </div>
   </div>

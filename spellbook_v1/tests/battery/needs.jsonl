@@ -1,0 +1,16 @@
+{"id": "n01", "lang": "typescript", "expect": "match", "need": "I have a ship flying around and I want the camera to trail behind it and settle smoothly instead of snapping.", "blind_note": "expect some camera-follow/smoothing helper"}
+{"id": "n02", "lang": "rust", "expect": "match", "need": "Carve out an underground cavern the player can actually walk through, as real 3D geometry.", "blind_note": "expect a cave/mesh generator"}
+{"id": "n03", "lang": "rust", "expect": "match", "need": "As the player flies over a planet, keep loading nearby ground and unloading far ground so memory stays flat.", "blind_note": "expect terrain/chunk streaming"}
+{"id": "n04", "lang": "typescript", "expect": "match", "need": "I want to run a bunch of per-frame update routines over only the objects that have the right pieces of data attached.", "blind_note": "expect an ECS / systems runner"}
+{"id": "n05", "lang": "typescript", "expect": "match", "need": "Give me a small 3D vector type with add, scale, dot, cross and normalize.", "blind_note": "sanity: expect a vector math type"}
+{"id": "n06", "lang": "rust", "expect": "match", "need": "An automated gun emplacement needs to pick which of several hostiles in range to fire at.", "blind_note": "expect target-selection / turret logic"}
+{"id": "n07", "lang": "rust", "expect": "match", "need": "Let the player disable and seize an enemy vessel, then keep the captured ships in some kind of hangar.", "blind_note": "expect capture + carrier/bay handling"}
+{"id": "n08", "lang": "typescript", "expect": "match", "need": "Two solid rectangles overlapped this frame; push them apart along the shortest direction.", "blind_note": "expect AABB resolve / MTV"}
+{"id": "n09", "lang": "rust", "expect": "closest", "need": "Simulate liquid sloshing around inside a sealed tank as the tank tilts and spins.", "blind_note": "probably no exact fluid sim; closest maybe a physics/atmosphere piece"}
+{"id": "n10", "lang": "typescript", "expect": "closest", "need": "Players edit their base; I need a proper undo/redo history for their actions.", "blind_note": "probably no undo stack; closest maybe a command/serialization piece"}
+{"id": "n11", "lang": "rust", "expect": "closest", "need": "Smooth over the jitter between a client's predicted movement and the authoritative server position.", "blind_note": "probably single-player; likely no netcode; test graceful nearest"}
+{"id": "n12", "lang": "typescript", "expect": "closest", "need": "Swap every UI label to a different language at runtime from translation tables.", "blind_note": "probably no i18n; closest maybe a UI panel piece"}
+{"id": "n13", "lang": "none", "expect": "none", "need": "Parse a PDF invoice and pull out the line items, quantities and totals.", "blind_note": "out of domain: should bring nothing / very low score"}
+{"id": "n14", "lang": "none", "expect": "none", "need": "Refresh an expired OAuth2 bearer token and retry the HTTPS request that failed.", "blind_note": "out of domain: auth/networking"}
+{"id": "n15", "lang": "none", "expect": "none", "need": "Train a gradient-boosted decision tree on a CSV and report feature importances.", "blind_note": "out of domain: ML"}
+{"id": "n16", "lang": "none", "expect": "none", "need": "Detect human faces in a photograph and blur them out.", "blind_note": "out of domain: computer vision"}

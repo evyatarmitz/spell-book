@@ -1,0 +1,6 @@
+# Generated sidecar index — derived from the library, regenerable with `sync`.
+data/
+
+# Python bytecode cache
+__pycache__/
+*.pyc

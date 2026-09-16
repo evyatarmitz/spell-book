@@ -1123,3 +1123,61 @@ pre.modal-source-hl code[class*="language-"] {
   flex: 1;
   /* inherit font/color from .form-field label */
 }
+
+/* ── Module cards (wizard + settings) ──────────────────── */
+.module-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.module-card:hover { border-color: var(--accent); }
+.module-card:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.module-card input[type="radio"] { margin-top: 2px; accent-color: var(--accent); }
+.module-card-body { display: flex; flex-direction: column; gap: 0.25rem; }
+.module-card-title { font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+.module-card-desc  { font-size: 0.78rem; opacity: 0.65; }
+.module-badge {
+  font-size: 0.68rem; font-weight: 500; opacity: 0.7;
+  background: var(--border); border-radius: 4px; padding: 1px 5px;
+}
+
+/* ── Elephant results panel ─────────────────────────────── */
+#elephant-results {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+#elephant-results.hidden { display: none; }
+.elephant-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+.elephant-result:hover { border-color: var(--accent); }
+.elephant-result-rank { font-size: 0.7rem; opacity: 0.4; width: 1.2rem; flex-shrink: 0; }
+.elephant-result-name { font-weight: 500; font-size: 0.85rem; flex: 1; }
+.elephant-result-lang { font-size: 0.72rem; opacity: 0.5; }
+.elephant-result-score { font-size: 0.7rem; opacity: 0.4; }
+
+/* ── Wizard overlay ─────────────────────────────────────── */
+#wizard-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+}
+#wizard-overlay.hidden { display: none; }

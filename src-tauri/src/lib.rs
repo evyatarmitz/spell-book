@@ -305,6 +305,167 @@ fn open_url(url: String, app: tauri::AppHandle) -> Result<(), String> {
     app.shell().open(&url, None).map_err(|e| e.to_string())
 }
 
+// ── Elephant sidecar commands ─────────────────────────────────────────────────
+
+/// Locate the spindex package next to the running app exe.
+fn spindex_dir() -> Result<PathBuf, String> {
+    let exe_dir = std::env::current_exe()
+        .map_err(|e| e.to_string())?
+        .parent()
+        .map(PathBuf::from)
+        .ok_or("cannot determine exe dir")?;
+    let p = exe_dir.join("spellbook_v1");
+    if p.exists() { Ok(p) } else { Err(format!("spindex not found at {}", p.display())) }
+}
+
+fn run_python(script: &str, profile: &str) -> Result<String, String> {
+    let sidecar = spindex_dir()?;
+    let elephant_home = sidecar.parent().unwrap().join("elephant");
+    let out = std::process::Command::new("python")
+        .args(["-c", script])
+        .current_dir(&sidecar)
+        .env("SPINDEX_MODEL_PROFILE", profile)
+        .env("ELEPHANT_HOME", &elephant_home)
+        .output()
+        .map_err(|e| format!("Failed to run python: {}", e))?;
+    if out.status.success() {
+        Ok(String::from_utf8_lossy(&out.stdout).into_owned())
+    } else {
+        Err(String::from_utf8_lossy(&out.stderr).into_owned())
+    }
+}
+
+#[derive(serde::Serialize)]
+struct ElephantStatus {
+    installed: bool,
+    profile: Option<String>,
+    indexed: usize,
+    entries: usize,
+}
+
+#[tauri::command]
+fn get_elephant_status() -> ElephantStatus {
+    let s = read_settings();
+    let profile = s.elephant_profile.clone();
+    let Some(p) = profile else {
+        return ElephantStatus { installed: false, profile: None, indexed: 0, entries: 0 };
+    };
+    let lib = read_library_dir().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
+    let script = format!(
+        "import json,sys; sys.path.insert(0,'.'); from spindex import api; print(json.dumps(api.status({:?})))",
+        lib
+    );
+    if let Ok(raw) = run_python(&script, &p) {
+        if let Ok(v) = serde_json::from_str::<Value>(&raw) {
+            return ElephantStatus {
+                installed: true,
+                profile: Some(p),
+                indexed: v["indexed"].as_u64().unwrap_or(0) as usize,
+                entries: v["entries"].as_u64().unwrap_or(0) as usize,
+            };
+        }
+    }
+    ElephantStatus { installed: true, profile: Some(p), indexed: 0, entries: 0 }
+}
+
+#[tauri::command]
+fn install_elephant(profile: String) -> Result<(), String> {
+    let lib = read_library_dir()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let script = format!(
+        "import sys; sys.path.insert(0,'.'); from spindex import api; api.sync({:?}); print('ok')",
+        lib
+    );
+    run_python(&script, &profile)?;
+    let mut s = read_settings();
+    s.elephant_profile = Some(profile);
+    write_settings(&s)
+}
+
+#[tauri::command]
+fn remove_elephant() -> Result<(), String> {
+    let mut s = read_settings();
+    s.elephant_profile = None;
+    write_settings(&s)
+}
+
+#[derive(serde::Serialize)]
+struct ElephantMatch {
+    id: String,
+    name: String,
+    language: String,
+    score: f64,
+    contract: String,
+}
+
+#[tauri::command]
+fn elephant_find(problem: String) -> Result<Vec<ElephantMatch>, String> {
+    let s = read_settings();
+    let profile = s.elephant_profile.ok_or("Elephant not installed")?;
+    let lib = read_library_dir()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let script = format!(
+        "import json,sys; sys.path.insert(0,'.'); from spindex import api; print(json.dumps(api.find({:?},{:?})))",
+        problem, lib
+    );
+    let raw = run_python(&script, &profile)?;
+    let matches: Vec<Value> = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+    Ok(matches.iter().map(|m| ElephantMatch {
+        id:       m["id"].as_str().unwrap_or("").to_string(),
+        name:     m["name"].as_str().unwrap_or("").to_string(),
+        language: m["language"].as_str().unwrap_or("").to_string(),
+        score:    m["score"].as_f64().unwrap_or(0.0),
+        contract: m["contract"].as_str().unwrap_or("").to_string(),
+    }).collect())
+}
+
+#[tauri::command]
+fn add_elephant_entry(entry_id: String) -> Result<(), String> {
+    let s = read_settings();
+    let Some(profile) = s.elephant_profile else { return Ok(()); };
+    let lib = read_library_dir()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let script = format!(
+        "import sys; sys.path.insert(0,'.'); from spindex import api; api.add_entry({:?},{:?})",
+        entry_id, lib
+    );
+    run_python(&script, &profile)?;
+    Ok(())
+}
+
+#[tauri::command]
+fn remove_elephant_entry(entry_id: String) -> Result<(), String> {
+    let s = read_settings();
+    let Some(profile) = s.elephant_profile else { return Ok(()); };
+    let lib = read_library_dir()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let script = format!(
+        "import sys; sys.path.insert(0,'.'); from spindex import api; api.remove_entry({:?},{:?})",
+        entry_id, lib
+    );
+    run_python(&script, &profile)?;
+    Ok(())
+}
+
+#[tauri::command]
+fn elephant_sync() -> Result<(), String> {
+    let s = read_settings();
+    let profile = s.elephant_profile.ok_or("Elephant not installed")?;
+    let lib = read_library_dir()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let script = format!(
+        "import sys; sys.path.insert(0,'.'); from spindex import api; api.sync({:?}); print('ok')",
+        lib
+    );
+    run_python(&script, &profile)?;
+    Ok(())
+}
+
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -317,6 +478,8 @@ pub fn run() {
             get_entries, get_entry, create_entry, update_entry, delete_entry,
             export_entries, check_for_updates, install_app_update, open_url,
             get_settings, set_settings,
+            get_elephant_status, install_elephant, remove_elephant,
+            elephant_find, elephant_sync, add_elephant_entry, remove_elephant_entry,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

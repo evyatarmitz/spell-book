@@ -1,0 +1,2124 @@
+[
+  {
+    "id": "n01",
+    "expect": "match",
+    "area": "camera",
+    "need": "A ship flies around and I want the camera to trail behind it and settle smoothly instead of snapping.",
+    "obvious_query": "camera follow",
+    "hits": [
+      {
+        "id": "camera-system-ti-ts",
+        "name": "CameraSystem",
+        "language": "typescript",
+        "score": 0.4374,
+        "contract": "First-person camera controller — follows the player entity, applies camera offset for eye height, smoothly transitions to seat override positions, and holds on last known position when player is dead."
+      },
+      {
+        "id": "ship-mover-ti-ts",
+        "name": "ShipMoverSystem",
+        "language": "typescript",
+        "score": 0.4195,
+        "contract": "Applies thrust, drag, and angular velocity to a piloted vehicle entity; reads pilot input from the occupant's InputBufferComponent."
+      },
+      {
+        "id": "ship-layout-generator-ti-ts",
+        "name": "ShipLayoutGenerator",
+        "language": "typescript",
+        "score": 0.3938,
+        "contract": "Orchestrates the full ship generation pipeline: logical topology → spatial mapping → connectivity → validation with retry loop."
+      },
+      {
+        "id": "rendering-mod-ti-rust",
+        "name": "RenderingPlugin / SpaceCamera / FpsCamera",
+        "language": "rust",
+        "score": 0.392,
+        "contract": "Dual-camera system (3rd-person orbit-follow SpaceCamera for piloting, FPS look camera for on-foot/surface modes) with GameMode-driven active-camera switching and mouse-look."
+      },
+      {
+        "id": "crew-behavior-ti-ts",
+        "name": "CrewBehaviorSystem",
+        "language": "typescript",
+        "score": 0.387,
+        "contract": "Drives crew agent state transitions using a priority-ordered behavior list: combat > repair > man station > patrol > idle; delegates pathfinding to GridPathfinder."
+      },
+      {
+        "id": "aim-system-ti-ts",
+        "name": "AimSystem",
+        "language": "typescript",
+        "score": 0.3844,
+        "contract": "Converts screen-center mouse position into a world-space aim ray; optionally applies lead assist offset toward a moving target."
+      },
+      {
+        "id": "input-mod-ti-rust",
+        "name": "InputPlugin (ship_piloting_input / player_shoot_input / fps_movement_input)",
+        "language": "rust",
+        "score": 0.3723,
+        "contract": "Unified per-GameMode input handling: 6DOF-ish ship flight with piloting-skill and crew-morale speed/turn bonuses plus passive Piloting XP, click/G-key weapon firing with mode-aware aim direction (mouse-unprojected in space, camera-forward on foot), and FPS/surface walking with terrain-height clamping."
+      },
+      {
+        "id": "ship-ti-rust",
+        "name": "apply_velocity_system",
+        "language": "rust",
+        "score": 0.3438,
+        "contract": "Integrates linear and angular Velocity into Transform each frame for every entity that has both."
+      }
+    ],
+    "sb_query": "camera follow",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n02",
+    "expect": "match",
+    "area": "terrain",
+    "need": "Carve an underground cavern the player can walk through, as real 3D geometry.",
+    "obvious_query": "cave",
+    "hits": [
+      {
+        "id": "cave-mesh-gen-ti-rust",
+        "name": "stream_cave_chunks / build_cave_mesh",
+        "language": "rust",
+        "score": 0.5443,
+        "contract": "Streams small underground CaveChunk entities around the player when below y=2, generating a simplified marching-cubes-lite mesh from PlanetNoise::cave_density."
+      },
+      {
+        "id": "planet-noise-ti-rust",
+        "name": "PlanetNoise",
+        "language": "rust",
+        "score": 0.5041,
+        "contract": "Seeded deterministic FBM (Perlin-based) noise sampler shared by terrain height and cave density queries — same planet_seed always produces the same terrain."
+      },
+      {
+        "id": "voxel-terrain-ti-rust",
+        "name": "VoxelWorld / VoxelChunk / generate_chunk / mesh_chunk",
+        "language": "rust",
+        "score": 0.3958,
+        "contract": "Chunk-based (16^3 voxel) destructible terrain system: procedurally generates voxel material per-cell from surface height + cave carving, meshes chunks via naive face-culling, and streams chunks around the player with dirty-flag re-meshing on edit."
+      },
+      {
+        "id": "terrain-chunk-streaming-ti-rust",
+        "name": "stream_chunks_system / build_chunk_mesh",
+        "language": "rust",
+        "score": 0.3716,
+        "contract": "Streams infinite heightmap-based terrain chunks around the player (NMS-style), with distance-ring LOD (33/17/9 verts/side) and marks near chunks for collision."
+      },
+      {
+        "id": "city-layout-gen-ti-rust",
+        "name": "generate / generate_floor_plan (CityLayout)",
+        "language": "rust",
+        "score": 0.3478,
+        "contract": "Deterministic (LCG-seeded) procedural city street-grid + zoned plot generator, plus a BSP-based building floor plan generator; pure data generation, no rendering."
+      },
+      {
+        "id": "surface-building-ti-rust",
+        "name": "BuildMode / place_block / destroy_block",
+        "language": "rust",
+        "score": 0.3295,
+        "contract": "Free-form block placement/destruction system for the planet surface: toggle build mode with [B], cycle block type with [1-5], place with Space/click, destroy nearest block in range with [G]."
+      },
+      {
+        "id": "ship-gen-ti-rust",
+        "name": "generate_ship_layout",
+        "language": "rust",
+        "score": 0.3241,
+        "contract": "A full context-free-graph-grammar (CFGG) engine that procedurally generates a ship's interior room layout - non-terminals expand into weighted production rules with mandatory-room and volume budgets, then a spatial pass places rooms in 3D along a spine with branch/deck offsets. Includes four hand-tuned archetypes (corvette/frigate/cruiser/capital)."
+      },
+      {
+        "id": "spatial-grid-ti-ts",
+        "name": "SpatialGridSystem",
+        "language": "typescript",
+        "score": 0.2931,
+        "contract": "Uniform spatial hash grid ג€” rebuilds from all Transform+Collider entities each tick; provides broadphase radius queries."
+      }
+    ],
+    "sb_query": "cave",
+    "sb_hits": [
+      "stream_cave_chunks / build_cave_mesh  [cave-mesh-gen-ti-rust]  rust  planet, caves, procedural, mesh, to-infinity",
+      "PlanetNoise  [planet-noise-ti-rust]  rust  planet, noise, procedural, terrain, to-infinity",
+      "VoxelWorld / VoxelChunk / generate_chunk / mesh_chunk  [voxel-terrain-ti-rust]  rust  planet, voxel, terrain, destructible, procedural, to-infinity"
+    ],
+    "sb_ids": [
+      "cave-mesh-gen-ti-rust",
+      "planet-noise-ti-rust",
+      "voxel-terrain-ti-rust"
+    ]
+  },
+  {
+    "id": "n03",
+    "expect": "match",
+    "area": "terrain",
+    "need": "As the player flies over a planet, keep loading nearby ground and dropping far ground so memory stays flat.",
+    "obvious_query": "terrain streaming",
+    "hits": [
+      {
+        "id": "ecs-system-ti-ts",
+        "name": "AbstractSystem",
+        "language": "typescript",
+        "score": 0.3398,
+        "contract": "Abstract System base class. Every concrete system implements update(world, dt). Provides optional onAdd/onRemove lifecycle hooks called by World."
+      },
+      {
+        "id": "sb-core-lib",
+        "name": "Spell Book Core Library",
+        "language": "rust",
+        "score": 0.314,
+        "contract": "Shared logic: Entry/Settings structs, catalog CRUD, config r/w, library dir resolution."
+      },
+      {
+        "id": "surface-persist-ti-rust",
+        "name": "save_surface_on_liftoff / load_surface_on_land",
+        "language": "rust",
+        "score": 0.2904,
+        "contract": "Persists player-placed building blocks (from building.rs) per-planet to a JSON file under %APPDATA%/ToInfinity/, saved on liftoff and reloaded on landing."
+      },
+      {
+        "id": "probe-network-panel-ti-rust",
+        "name": "probe_ui::draw",
+        "language": "rust",
+        "score": 0.2878,
+        "contract": "Probe Network panel: launch a probe to the current system from inventory, shows in-flight count, and a scrollable feed of returned probe reports (threat, stations, resources, anomaly hints)."
+      },
+      {
+        "id": "gbi-processor-ti-ts",
+        "name": "GbiProcessor",
+        "language": "typescript",
+        "score": 0.28,
+        "contract": "Scans raw FBX/OBJ filenames and heuristically generates GbiAssetMetadata ג€” size from NxM patterns, type from keywords, and default face sockets for ROOM/HALLWAY types."
+      },
+      {
+        "id": "comms-bus-ti-rust",
+        "name": "CommsBus / Signal / tick_comms / order_understood",
+        "language": "rust",
+        "score": 0.2778,
+        "contract": "Simulates physical signal propagation for cross-system orders — distance-based delay, jamming/noise-driven failure, and fidelity decay — decoupling order senders from receivers via events instead of direct calls."
+      },
+      {
+        "id": "sb-app-js",
+        "name": "Spell Book Frontend JS",
+        "language": "javascript",
+        "score": 0.2749,
+        "contract": "Full SPA frontend: entry cards, sidebar filters, add/edit/defaults modal, settings panel, export ZIP, batch ops."
+      },
+      {
+        "id": "station-npc-ti-rust",
+        "name": "spawn_station_npcs",
+        "language": "rust",
+        "score": 0.2724,
+        "contract": "On docking, spawns one NPC entity per npc_slot defined on the docked station, assigning deterministic personality traits and phrase banks by archetype; despawns them all on undocking."
+      }
+    ],
+    "sb_query": "terrain streaming",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n04",
+    "expect": "match",
+    "area": "ecs",
+    "need": "Run per-frame update routines over only the entities that carry the right set of components.",
+    "obvious_query": "system update",
+    "hits": [
+      {
+        "id": "spatial-grid-ti-ts",
+        "name": "SpatialGridSystem",
+        "language": "typescript",
+        "score": 0.3062,
+        "contract": "Uniform spatial hash grid ג€” rebuilds from all Transform+Collider entities each tick; provides broadphase radius queries."
+      },
+      {
+        "id": "spatial-query-ti-ts",
+        "name": "SpatialQuery",
+        "language": "typescript",
+        "score": 0.3025,
+        "contract": "High-level query API over SpatialGridSystem — nearest entity, k-nearest, all within radius. Wraps raw cell lookups into convenient call signatures for systems."
+      },
+      {
+        "id": "hud-panel-ti-rust",
+        "name": "draw_hud / HudStatusRes",
+        "language": "rust",
+        "score": 0.2967,
+        "contract": "Main always-on HUD: hull/shield/power bars, credits, mission progress, hazard/distress/day-night/wanted-level/hull-breach/fire/target-lock/carrier-proximity/seat-role badges, arrival message toast, build-mode overlay, scan contacts, crosshair, and mode-specific control hints — plus the panel-open hotkeys (I/M/N/C/T/R)."
+      },
+      {
+        "id": "eventfilter-ti-ts",
+        "name": "EventFilter",
+        "language": "typescript",
+        "score": 0.294,
+        "contract": "Tag + predicate filter wrapper for EventBus subscriptions. filterOn(bus, eventType, predicate, handler) — only invokes handler when predicate returns true. Useful for entity-scoped or faction-scoped event handlers."
+      },
+      {
+        "id": "voxel-terrain-ti-rust",
+        "name": "VoxelWorld / VoxelChunk / generate_chunk / mesh_chunk",
+        "language": "rust",
+        "score": 0.2858,
+        "contract": "Chunk-based (16^3 voxel) destructible terrain system: procedurally generates voxel material per-cell from surface height + cave carving, meshes chunks via naive face-culling, and streams chunks around the player with dirty-flag re-meshing on edit."
+      },
+      {
+        "id": "stochastic-selector-ti-ts",
+        "name": "StochasticSelector",
+        "language": "typescript",
+        "score": 0.2797,
+        "contract": "Grammar expansion option selector ג€” filters unaffordable candidates, uses greedy mandatory-first selection in termination phase, and weighted random in normal phase."
+      },
+      {
+        "id": "planet-mod-plugin-ti-rust",
+        "name": "PlanetPlugin / ActiveSurface / ChunkCoord",
+        "language": "rust",
+        "score": 0.2754,
+        "contract": "Module root for planet surface generation: declares shared data types (BuildingConfig, SurfaceProp, FaunaType, ChunkCoord, ActiveSurface) and wires every planet subsystem's systems into the Bevy app via PlanetPlugin."
+      },
+      {
+        "id": "ui-plugin-panel-dispatch-ti-rust",
+        "name": "UiPlugin / draw_panels / draw_new_panels / draw_extra_panels / open_panel_keys",
+        "language": "rust",
+        "score": 0.2716,
+        "contract": "Central UI module: registers all UI systems/events/resources as a Bevy Plugin, defines the panel-open hotkey system, and dispatches ActivePanel state to the correct sub-panel draw function across three separate Update systems split by parameter budget (draw_panels / draw_new_panels / draw_extra_panels)."
+      }
+    ],
+    "sb_query": "system update",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n05",
+    "expect": "match",
+    "area": "math",
+    "need": "A small 3D vector type with add, scale, dot, cross and normalize.",
+    "obvious_query": "vector",
+    "hits": [
+      {
+        "id": "unit-contract-with-inheritance-py",
+        "name": "Contract",
+        "language": "python",
+        "score": 0.4064,
+        "contract": "An interface plus its position in a graph: inputs, outputs, invariants, inherited constraints, and derived neighbour references."
+      },
+      {
+        "id": "spatial-hint-compositor-ti-ts",
+        "name": "SpatialHintCompositor",
+        "language": "typescript",
+        "score": 0.3442,
+        "contract": "Merges parent and child SpatialHint objects during grammar expansion — child values override parent; undefined fields inherit from parent."
+      },
+      {
+        "id": "vector3-ti-ts",
+        "name": "Vector3Math",
+        "language": "typescript",
+        "score": 0.3398,
+        "contract": "Pure Vector3 math helpers — add, sub, scale, dot, cross, lengthSq, length, normalize, lerp, distance."
+      },
+      {
+        "id": "ecs-system-ti-ts",
+        "name": "AbstractSystem",
+        "language": "typescript",
+        "score": 0.3364,
+        "contract": "Abstract System base class. Every concrete system implements update(world, dt). Provides optional onAdd/onRemove lifecycle hooks called by World."
+      },
+      {
+        "id": "subsystem-slot-ti-ts",
+        "name": "SubsystemComponent",
+        "language": "typescript",
+        "score": 0.3287,
+        "contract": "ECS component for a ship subsystem (reactor, engine, shield, etc.) with power budget, efficiency, integrity, and operational state."
+      },
+      {
+        "id": "console-system-ti-ts",
+        "name": "ConsoleSystem",
+        "language": "typescript",
+        "score": 0.3237,
+        "contract": "Handles player/crew interaction with ConsoleComponents — manning a station transfers subsystem control authority, and leaving clears the manning field and revokes authority."
+      },
+      {
+        "id": "symbol-table-ti-ts",
+        "name": "SymbolTable",
+        "language": "typescript",
+        "score": 0.3197,
+        "contract": "O(1) lookup for CFGG production rules and pre-computed symbol attributes (min cost, min room count, terminal status, mandatory flag)."
+      },
+      {
+        "id": "grammar-analyzer-ti-ts",
+        "name": "GrammarAnalyzer",
+        "language": "typescript",
+        "score": 0.3172,
+        "contract": "Static grammar analysis — computes minimum cost/room-count for all symbols via Knuth hypergraph relaxation; validates solvability and checks affordability of expansion options."
+      }
+    ],
+    "sb_query": "vector",
+    "sb_hits": [
+      "GenerationContext  [generation-context-ti-ts]  typescript  ship, procedural, cfgg, context, determinism, to-infinity",
+      "Vector3Math  [vector3-ti-ts]  typescript  to-infinity, math, pure, primitives",
+      "QuaternionMath  [quaternion-ti-ts]  typescript  to-infinity, core, math, quaternion, rotation",
+      "AabbResolver  [aabb-resolver-ti-ts]  typescript  to-infinity, world, physics, collision, aabb",
+      "InputMapper  [input-mapper-ti-ts]  typescript  to-infinity, player, input, embodiment"
+    ],
+    "sb_ids": [
+      "generation-context-ti-ts",
+      "vector3-ti-ts",
+      "quaternion-ti-ts",
+      "aabb-resolver-ti-ts",
+      "input-mapper-ti-ts"
+    ]
+  },
+  {
+    "id": "n06",
+    "expect": "match",
+    "area": "combat",
+    "need": "An automated gun needs to choose which of several hostiles in range to shoot.",
+    "obvious_query": "targeting",
+    "hits": [
+      {
+        "id": "targeting-system-ti-ts",
+        "name": "TargetingSystem",
+        "language": "typescript",
+        "score": 0.4676,
+        "contract": "Selects the highest-priority target for each armed agent or weapon subsystem based on range, faction, and threat score; writes targetEntity into AgentComponent."
+      },
+      {
+        "id": "combat-system-ti-ts",
+        "name": "CombatSystem",
+        "language": "typescript",
+        "score": 0.3059,
+        "contract": "Tick-based weapon system — finds nearest enemy vehicle per weapon, resolves accuracy roll, applies layered damage (armor reduction, room hit, subsystem penetration)."
+      },
+      {
+        "id": "faction-ai-ti-ts",
+        "name": "FactionAI",
+        "language": "typescript",
+        "score": 0.2845,
+        "contract": "High-level faction decision system — evaluates fleet strength, resource state, and diplomatic relations to issue fleet-level orders (attack, retreat, trade, ally)."
+      },
+      {
+        "id": "goal-system-ti-ts",
+        "name": "GoalSystem",
+        "language": "typescript",
+        "score": 0.276,
+        "contract": "Priority-based goal stack for AI agents — push, pop, interrupt; evaluates goal conditions each tick and advances the top goal toward completion."
+      },
+      {
+        "id": "utility-ai-system-ti-ts",
+        "name": "UtilityAISystem",
+        "language": "typescript",
+        "score": 0.2662,
+        "contract": "Utility-based AI for crew agents — evaluates repair and station-manning utility scores each tick, selects the highest-scoring job, and executes movement + action toward it."
+      },
+      {
+        "id": "stochastic-selector-ti-ts",
+        "name": "StochasticSelector",
+        "language": "typescript",
+        "score": 0.2598,
+        "contract": "Grammar expansion option selector ג€” filters unaffordable candidates, uses greedy mandatory-first selection in termination phase, and weighted random in normal phase."
+      },
+      {
+        "id": "interior-combat-fps-ti-rust",
+        "name": "InteriorEnemy / interior_enemy_ai",
+        "language": "rust",
+        "score": 0.2592,
+        "contract": "FPS-mode enemy AI for ship/station interiors: enemies patrol randomly, transition to Alert/Attack based on distance to player, shoot on cooldown (routed through player Shields if present), and stray fire has a small chance to breach the hull or start a fire in the current room."
+      },
+      {
+        "id": "faction-ai-ti-rust",
+        "name": "tick_faction_ai / FactionAiState",
+        "language": "rust",
+        "score": 0.2543,
+        "contract": "Autonomous faction fleet AI: every ~90s per faction, spawns a FactionFleet with an order (PatrolBorder/AttackWeak/TradeRoute/etc); resolves attack outcomes via a Lanchester square-law abstract battle and adjusts SectorControl influence accordingly."
+      }
+    ],
+    "sb_query": "targeting",
+    "sb_hits": [
+      "TargetingSystem  [targeting-system-ti-ts]  typescript  to-infinity, combat, targeting, system",
+      "ShipSubsystems  [subsystems-ti-rust]  rust  combat, damage-model, bevy-component, to-infinity",
+      "TargetLock  [targeting-ti-rust]  rust  combat, targeting, bevy-system, to-infinity"
+    ],
+    "sb_ids": [
+      "targeting-system-ti-ts",
+      "subsystems-ti-rust",
+      "targeting-ti-rust"
+    ]
+  },
+  {
+    "id": "n07",
+    "expect": "match",
+    "area": "combat",
+    "need": "Let the player disable and seize an enemy vessel, then store the captured ships in a hangar.",
+    "obvious_query": "capture ship",
+    "hits": [
+      {
+        "id": "faction-resources-ti-ts",
+        "name": "FactionResourcePool",
+        "language": "typescript",
+        "score": 0.3648,
+        "contract": "Tracks faction-level resource pools (fuel, crew, munitions, credits) with income/consumption per tick and a ledger of transfers between factions."
+      },
+      {
+        "id": "resource-flow-ti-ts",
+        "name": "ResourceFlowSystem",
+        "language": "typescript",
+        "score": 0.3476,
+        "contract": "Tick-based resource transfer along defined routes from source inventories to sink inventories, respecting pipe capacity per tick."
+      },
+      {
+        "id": "power-subsystem-ti-ts",
+        "name": "PowerGrid",
+        "language": "typescript",
+        "score": 0.2824,
+        "contract": "Computes per-vehicle power balance each tick: sums generation from REACTOR subsystems, distributes to consumers by priority, load-sheds lowest-priority consumers when deficit occurs."
+      },
+      {
+        "id": "faction-economy-ti-rust",
+        "name": "Faction-level Resource Economy (supply pools, trade routes, shortages)",
+        "language": "rust",
+        "score": 0.2747,
+        "contract": "Each Faction has a SupplyPool (stocks/capacity/demand/production per Resource type) seeded by faction archetype (Federation produces Components/Food, Raxis produces Weapons and demands Fuel, Pirates produce nothing); tick_economy runs trade-route deliveries on their own cycle timers and a global 10s production/consumption tick, firing FactionResourceShortage when demand can't be met; market_price scales with demand/stock ratio (sqrt-dampened, clamped 0.5x-3x base)."
+      },
+      {
+        "id": "commerce-mod-ti-rust",
+        "name": "GoodsRegistry / Inventory / PlayerItems / CommercePlugin",
+        "language": "rust",
+        "score": 0.2665,
+        "contract": "Core commerce types: tradeable-goods registry with deterministic per-station price variance, player cargo/credits inventory, and equippable-item tracking; plugin wires loader + economy + station_economy together."
+      },
+      {
+        "id": "megaproject-manager-ti-rust",
+        "name": "MegaprojectManager",
+        "language": "rust",
+        "score": 0.2654,
+        "contract": "Manages large player-funded constructions (orbital stations up to ringworld segments) that require both credit+cargo investment and elapsed build time; once both thresholds are met the project activates and pays passive income per cycle."
+      },
+      {
+        "id": "market-panel-ti-rust",
+        "name": "market::draw / handle_market_events",
+        "language": "rust",
+        "score": 0.2541,
+        "contract": "Market window (buy/sell grid for the current station's goods, with war-contested price surcharge and trading-skill buy discount) plus the Update system that resolves queued BuyEvent/SellEvent against the player's Inventory and grants Trading XP."
+      },
+      {
+        "id": "inventory-ti-ts",
+        "name": "InventoryComponent",
+        "language": "typescript",
+        "score": 0.2541,
+        "contract": "Item container component with slot capacity, weight limit, stackable item support, and add/remove/find operations."
+      }
+    ],
+    "sb_query": "capture ship",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n08",
+    "expect": "match",
+    "area": "physics",
+    "need": "Two solid rectangles overlapped this frame; push them apart the shortest way.",
+    "obvious_query": "collision resolve",
+    "hits": [
+      {
+        "id": "spatial-layout-resolver-ti-ts",
+        "name": "SpatialLayoutResolver",
+        "language": "typescript",
+        "score": 0.372,
+        "contract": "Maps abstract room topology to physical 3D space — OBB overlap detection, socket world-space transforms, room-to-socket alignment, and A* corridor routing between rooms."
+      },
+      {
+        "id": "aabb-ti-ts",
+        "name": "AABB",
+        "language": "typescript",
+        "score": 0.3665,
+        "contract": "Axis-aligned bounding box — overlap test, point containment, merge, raycast, fromCenterSize."
+      },
+      {
+        "id": "frustum-culler-ti-ts",
+        "name": "FrustumCuller",
+        "language": "typescript",
+        "score": 0.3226,
+        "contract": "View-frustum AABB test — isVisible(aabb, planes) returns true if box intersects all 6 frustum half-spaces. Used by renderer and FidelitySystem to skip L2 simulation on off-screen entities."
+      },
+      {
+        "id": "bounds-baker-ti-ts",
+        "name": "BoundsBaker",
+        "language": "typescript",
+        "score": 0.3151,
+        "contract": "Compute axis-aligned bounding box from mesh vertex data. bakeFromVertices(vertices) returns { min, max, center, halfExtents } — written to GBI metadata as logicalSize."
+      },
+      {
+        "id": "spatial-grid-ti-ts",
+        "name": "SpatialGridSystem",
+        "language": "typescript",
+        "score": 0.3038,
+        "contract": "Uniform spatial hash grid ג€” rebuilds from all Transform+Collider entities each tick; provides broadphase radius queries."
+      },
+      {
+        "id": "aabb-resolver-ti-ts",
+        "name": "AabbResolver",
+        "language": "typescript",
+        "score": 0.2979,
+        "contract": "Narrowphase AABB overlap push-out — resolves interpenetration between two axis-aligned boxes with minimum-translation-vector (MTV) slide response. Does not handle rotation."
+      },
+      {
+        "id": "ship-layout-generator-ti-ts",
+        "name": "ShipLayoutGenerator",
+        "language": "typescript",
+        "score": 0.2811,
+        "contract": "Orchestrates the full ship generation pipeline: logical topology → spatial mapping → connectivity → validation with retry loop."
+      },
+      {
+        "id": "hitscan-resolver-ti-ts",
+        "name": "HitscanResolverSystem",
+        "language": "typescript",
+        "score": 0.2577,
+        "contract": "Hitscan ray ג€” sphere broadphase via SpatialGrid; dot-product cone narrowphase; routes damage through DamageSystem to the closest valid target."
+      }
+    ],
+    "sb_query": "collision resolve",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n09",
+    "expect": "match",
+    "area": "math",
+    "need": "Represent and compose 3D rotations without gimbal lock.",
+    "obvious_query": "quaternion",
+    "hits": [
+      {
+        "id": "quaternion-ti-ts",
+        "name": "QuaternionMath",
+        "language": "typescript",
+        "score": 0.4642,
+        "contract": "Quaternion math helpers — multiply, slerp, fromEuler (XYZ radians), toMatrix4 (column-major Float32Array), conjugate, normalize, rotateVector."
+      },
+      {
+        "id": "transform-ti-ts",
+        "name": "TransformComponent",
+        "language": "typescript",
+        "score": 0.392,
+        "contract": "TransformComponent (local pos/rot/scale, parent/children, globalPosition, dirty flag) + TransformSystem that propagates the hierarchy each tick."
+      },
+      {
+        "id": "ship-ti-rust",
+        "name": "apply_velocity_system",
+        "language": "rust",
+        "score": 0.3563,
+        "contract": "Integrates linear and angular Velocity into Transform each frame for every entity that has both."
+      },
+      {
+        "id": "kinematic-character-controller-ti-ts",
+        "name": "KinematicCharacterControllerSystem",
+        "language": "typescript",
+        "score": 0.3321,
+        "contract": "Input-driven kinematic character controller ג€” reads InputBufferComponent, translates directional bools to world-space movement, resolves AABB slide collision against static colliders."
+      },
+      {
+        "id": "spatial-layout-resolver-ti-ts",
+        "name": "SpatialLayoutResolver",
+        "language": "typescript",
+        "score": 0.3296,
+        "contract": "Maps abstract room topology to physical 3D space — OBB overlap detection, socket world-space transforms, room-to-socket alignment, and A* corridor routing between rooms."
+      },
+      {
+        "id": "aabb-resolver-ti-ts",
+        "name": "AabbResolver",
+        "language": "typescript",
+        "score": 0.3219,
+        "contract": "Narrowphase AABB overlap push-out — resolves interpenetration between two axis-aligned boxes with minimum-translation-vector (MTV) slide response. Does not handle rotation."
+      },
+      {
+        "id": "aabb-ti-ts",
+        "name": "AABB",
+        "language": "typescript",
+        "score": 0.3039,
+        "contract": "Axis-aligned bounding box — overlap test, point containment, merge, raycast, fromCenterSize."
+      },
+      {
+        "id": "camera-system-ti-ts",
+        "name": "CameraSystem",
+        "language": "typescript",
+        "score": 0.2886,
+        "contract": "First-person camera controller — follows the player entity, applies camera offset for eye height, smoothly transitions to seat override positions, and holds on last known position when player is dead."
+      }
+    ],
+    "sb_query": "quaternion",
+    "sb_hits": [
+      "QuaternionMath  [quaternion-ti-ts]  typescript  to-infinity, core, math, quaternion, rotation"
+    ],
+    "sb_ids": [
+      "quaternion-ti-ts"
+    ]
+  },
+  {
+    "id": "n10",
+    "expect": "match",
+    "area": "physics",
+    "need": "Quickly find which nearby objects a given object might be touching, without checking everything.",
+    "obvious_query": "spatial grid",
+    "hits": [
+      {
+        "id": "interaction-system-ti-ts",
+        "name": "InteractionSystem",
+        "language": "typescript",
+        "score": 0.4639,
+        "contract": "Range check → prompt → invoke on interactable entities. Finds nearest Interactable within player interaction range; emits INTERACTION_PROMPT (within range) and INTERACTION_INVOKED (on use key)."
+      },
+      {
+        "id": "spatial-grid-ti-ts",
+        "name": "SpatialGridSystem",
+        "language": "typescript",
+        "score": 0.4515,
+        "contract": "Uniform spatial hash grid ג€” rebuilds from all Transform+Collider entities each tick; provides broadphase radius queries."
+      },
+      {
+        "id": "spatial-query-ti-ts",
+        "name": "SpatialQuery",
+        "language": "typescript",
+        "score": 0.4403,
+        "contract": "High-level query API over SpatialGridSystem — nearest entity, k-nearest, all within radius. Wraps raw cell lookups into convenient call signatures for systems."
+      },
+      {
+        "id": "pathfinding-ti-ts",
+        "name": "GridPathfinder",
+        "language": "typescript",
+        "score": 0.4339,
+        "contract": "A* grid pathfinder for crew and agent navigation within a ship; returns a world-space waypoint path through room centers."
+      },
+      {
+        "id": "spatial-layout-resolver-ti-ts",
+        "name": "SpatialLayoutResolver",
+        "language": "typescript",
+        "score": 0.3748,
+        "contract": "Maps abstract room topology to physical 3D space — OBB overlap detection, socket world-space transforms, room-to-socket alignment, and A* corridor routing between rooms."
+      },
+      {
+        "id": "frustum-culler-ti-ts",
+        "name": "FrustumCuller",
+        "language": "typescript",
+        "score": 0.3472,
+        "contract": "View-frustum AABB test — isVisible(aabb, planes) returns true if box intersects all 6 frustum half-spaces. Used by renderer and FidelitySystem to skip L2 simulation on off-screen entities."
+      },
+      {
+        "id": "navgraph-astar-ti-rust",
+        "name": "NavGraph",
+        "language": "rust",
+        "score": 0.3449,
+        "contract": "A* waypoint-graph pathfinder intended for interior enemy navigation: nodes have world positions and neighbor lists; find_path(start, goal) snaps to nearest nodes and returns a reconstructed world-space path."
+      },
+      {
+        "id": "aabb-ti-ts",
+        "name": "AABB",
+        "language": "typescript",
+        "score": 0.3439,
+        "contract": "Axis-aligned bounding box — overlap test, point containment, merge, raycast, fromCenterSize."
+      }
+    ],
+    "sb_query": "spatial grid",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n11",
+    "expect": "match",
+    "area": "player",
+    "need": "Move a walking player around, sliding along walls instead of passing through them.",
+    "obvious_query": "character controller",
+    "hits": [
+      {
+        "id": "unit-contract-with-inheritance-py",
+        "name": "Contract",
+        "language": "python",
+        "score": 0.4373,
+        "contract": "An interface plus its position in a graph: inputs, outputs, invariants, inherited constraints, and derived neighbour references."
+      },
+      {
+        "id": "topology-engine-ti-ts",
+        "name": "TopologyEngine",
+        "language": "typescript",
+        "score": 0.4165,
+        "contract": "Ship room graph engine ג€” builds adjacency graph from ShipLayoutDefinition; Dijkstra pathfinding, reachability, island detection, bottleneck detection, flow propagation, and metrics."
+      },
+      {
+        "id": "spatial-layout-resolver-ti-ts",
+        "name": "SpatialLayoutResolver",
+        "language": "typescript",
+        "score": 0.3997,
+        "contract": "Maps abstract room topology to physical 3D space — OBB overlap detection, socket world-space transforms, room-to-socket alignment, and A* corridor routing between rooms."
+      },
+      {
+        "id": "contract-graph-wiring-check-py",
+        "name": "wiring_check",
+        "language": "python",
+        "score": 0.3615,
+        "contract": "One pass over a set of interface contracts: proves every input has a producer, reports unconsumed outputs, and derives each contract's neighbours from the graph."
+      },
+      {
+        "id": "navgraph-astar-ti-rust",
+        "name": "NavGraph",
+        "language": "rust",
+        "score": 0.3563,
+        "contract": "A* waypoint-graph pathfinder intended for interior enemy navigation: nodes have world positions and neighbor lists; find_path(start, goal) snaps to nearest nodes and returns a reconstructed world-space path."
+      },
+      {
+        "id": "grammar-analyzer-ti-ts",
+        "name": "GrammarAnalyzer",
+        "language": "typescript",
+        "score": 0.3517,
+        "contract": "Static grammar analysis — computes minimum cost/room-count for all symbols via Knuth hypergraph relaxation; validates solvability and checks affordability of expansion options."
+      },
+      {
+        "id": "pathfinding-ti-ts",
+        "name": "GridPathfinder",
+        "language": "typescript",
+        "score": 0.3504,
+        "contract": "A* grid pathfinder for crew and agent navigation within a ship; returns a world-space waypoint path through room centers."
+      },
+      {
+        "id": "ship-layout-generator-ti-ts",
+        "name": "ShipLayoutGenerator",
+        "language": "typescript",
+        "score": 0.3376,
+        "contract": "Orchestrates the full ship generation pipeline: logical topology → spatial mapping → connectivity → validation with retry loop."
+      }
+    ],
+    "sb_query": "character controller",
+    "sb_hits": [
+      "KinematicCharacterControllerSystem  [kinematic-character-controller-ti-ts]  typescript  player, movement, collision, kinematic, input, to-infinity"
+    ],
+    "sb_ids": [
+      "kinematic-character-controller-ti-ts"
+    ]
+  },
+  {
+    "id": "n12",
+    "expect": "match",
+    "area": "rendering",
+    "need": "Skip drawing objects that are outside what the camera can see.",
+    "obvious_query": "frustum cull",
+    "hits": [
+      {
+        "id": "frustum-culler-ti-ts",
+        "name": "FrustumCuller",
+        "language": "typescript",
+        "score": 0.5395,
+        "contract": "View-frustum AABB test — isVisible(aabb, planes) returns true if box intersects all 6 frustum half-spaces. Used by renderer and FidelitySystem to skip L2 simulation on off-screen entities."
+      },
+      {
+        "id": "aabb-ti-ts",
+        "name": "AABB",
+        "language": "typescript",
+        "score": 0.4048,
+        "contract": "Axis-aligned bounding box — overlap test, point containment, merge, raycast, fromCenterSize."
+      },
+      {
+        "id": "camera-system-ti-ts",
+        "name": "CameraSystem",
+        "language": "typescript",
+        "score": 0.3763,
+        "contract": "First-person camera controller — follows the player entity, applies camera offset for eye height, smoothly transitions to seat override positions, and holds on last known position when player is dead."
+      },
+      {
+        "id": "hitscan-resolver-ti-ts",
+        "name": "HitscanResolverSystem",
+        "language": "typescript",
+        "score": 0.3581,
+        "contract": "Hitscan ray ג€” sphere broadphase via SpatialGrid; dot-product cone narrowphase; routes damage through DamageSystem to the closest valid target."
+      },
+      {
+        "id": "rendering-mod-ti-rust",
+        "name": "RenderingPlugin / SpaceCamera / FpsCamera",
+        "language": "rust",
+        "score": 0.3457,
+        "contract": "Dual-camera system (3rd-person orbit-follow SpaceCamera for piloting, FPS look camera for on-foot/surface modes) with GameMode-driven active-camera switching and mouse-look."
+      },
+      {
+        "id": "fov-controller-ti-ts",
+        "name": "FovController",
+        "language": "typescript",
+        "score": 0.3157,
+        "contract": "Dynamic FOV controller — lerps camera FOV based on player state: sprint (+10°), scope (-30°), cinematic override (fixed). Returns current FOV each tick for renderer consumption."
+      },
+      {
+        "id": "atmosphere-fog-ti-rust",
+        "name": "update_atmosphere",
+        "language": "rust",
+        "score": 0.3135,
+        "contract": "Sets per-biome fog color/falloff on the camera's FogSettings based on the active planet's type when in Surface game mode, and disables it otherwise."
+      },
+      {
+        "id": "aabb-resolver-ti-ts",
+        "name": "AabbResolver",
+        "language": "typescript",
+        "score": 0.2937,
+        "contract": "Narrowphase AABB overlap push-out — resolves interpenetration between two axis-aligned boxes with minimum-translation-vector (MTV) slide response. Does not handle rotation."
+      }
+    ],
+    "sb_query": "frustum cull",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n13",
+    "expect": "match",
+    "area": "terrain",
+    "need": "Generate the bumpy height of a planet surface procedurally so it looks natural.",
+    "obvious_query": "planet noise",
+    "hits": [
+      {
+        "id": "planet-noise-ti-rust",
+        "name": "PlanetNoise",
+        "language": "rust",
+        "score": 0.382,
+        "contract": "Seeded deterministic FBM (Perlin-based) noise sampler shared by terrain height and cave density queries — same planet_seed always produces the same terrain."
+      },
+      {
+        "id": "cave-mesh-gen-ti-rust",
+        "name": "stream_cave_chunks / build_cave_mesh",
+        "language": "rust",
+        "score": 0.3348,
+        "contract": "Streams small underground CaveChunk entities around the player when below y=2, generating a simplified marching-cubes-lite mesh from PlanetNoise::cave_density."
+      },
+      {
+        "id": "city-layout-gen-ti-rust",
+        "name": "generate / generate_floor_plan (CityLayout)",
+        "language": "rust",
+        "score": 0.2627,
+        "contract": "Deterministic (LCG-seeded) procedural city street-grid + zoned plot generator, plus a BSP-based building floor plan generator; pure data generation, no rendering."
+      },
+      {
+        "id": "terrain-chunk-streaming-ti-rust",
+        "name": "stream_chunks_system / build_chunk_mesh",
+        "language": "rust",
+        "score": 0.2462,
+        "contract": "Streams infinite heightmap-based terrain chunks around the player (NMS-style), with distance-ring LOD (33/17/9 verts/side) and marks near chunks for collision."
+      },
+      {
+        "id": "frustum-culler-ti-ts",
+        "name": "FrustumCuller",
+        "language": "typescript",
+        "score": 0.2165,
+        "contract": "View-frustum AABB test — isVisible(aabb, planes) returns true if box intersects all 6 frustum half-spaces. Used by renderer and FidelitySystem to skip L2 simulation on off-screen entities."
+      },
+      {
+        "id": "cell-hasher-ti-ts",
+        "name": "CellHasher",
+        "language": "typescript",
+        "score": 0.2159,
+        "contract": "3D integer cell hasher with configurable cell size. Converts world positions to cell keys; used internally by SpatialGrid and externally by any broadphase code."
+      },
+      {
+        "id": "spatial-query-ti-ts",
+        "name": "SpatialQuery",
+        "language": "typescript",
+        "score": 0.188,
+        "contract": "High-level query API over SpatialGridSystem — nearest entity, k-nearest, all within radius. Wraps raw cell lookups into convenient call signatures for systems."
+      },
+      {
+        "id": "pathfinding-ti-ts",
+        "name": "GridPathfinder",
+        "language": "typescript",
+        "score": 0.186,
+        "contract": "A* grid pathfinder for crew and agent navigation within a ship; returns a world-space waypoint path through room centers."
+      }
+    ],
+    "sb_query": "planet noise",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n14",
+    "expect": "match",
+    "area": "terrain",
+    "need": "Let players dig into and destroy chunks of the ground.",
+    "obvious_query": "voxel",
+    "hits": [
+      {
+        "id": "resource-flow-ti-ts",
+        "name": "ResourceFlowSystem",
+        "language": "typescript",
+        "score": 0.4249,
+        "contract": "Tick-based resource transfer along defined routes from source inventories to sink inventories, respecting pipe capacity per tick."
+      },
+      {
+        "id": "inventory-ti-ts",
+        "name": "InventoryComponent",
+        "language": "typescript",
+        "score": 0.388,
+        "contract": "Item container component with slot capacity, weight limit, stackable item support, and add/remove/find operations."
+      },
+      {
+        "id": "faction-resources-ti-ts",
+        "name": "FactionResourcePool",
+        "language": "typescript",
+        "score": 0.3878,
+        "contract": "Tracks faction-level resource pools (fuel, crew, munitions, credits) with income/consumption per tick and a ledger of transfers between factions."
+      },
+      {
+        "id": "commerce-economy-ti-rust",
+        "name": "EconomyState",
+        "language": "rust",
+        "score": 0.3776,
+        "contract": "System-wide price-pressure approximation: kills raise weapons-grade demand, ore pickups lower metal prices, jumps raise fuel demand; pressure decays toward zero over time."
+      },
+      {
+        "id": "commerce-loader-ti-rust",
+        "name": "load_goods",
+        "language": "rust",
+        "score": 0.3596,
+        "contract": "Startup system that parses assets/goods/goods.ron into GoodDef records and populates the GoodsRegistry resource."
+      },
+      {
+        "id": "processing-factory-ti-rust",
+        "name": "Factory / RecipeLibrary / tick_factories",
+        "language": "rust",
+        "score": 0.3531,
+        "contract": "Factory component runs a queue of Blueprint production runs against a RecipeLibrary (ore->components->weapons/medicine chains), consuming resource inputs and accumulating outputs in a buffer based on worker/tier throughput."
+      },
+      {
+        "id": "faction-economy-ti-rust",
+        "name": "Faction-level Resource Economy (supply pools, trade routes, shortages)",
+        "language": "rust",
+        "score": 0.341,
+        "contract": "Each Faction has a SupplyPool (stocks/capacity/demand/production per Resource type) seeded by faction archetype (Federation produces Components/Food, Raxis produces Weapons and demands Fuel, Pirates produce nothing); tick_economy runs trade-route deliveries on their own cycle timers and a global 10s production/consumption tick, firing FactionResourceShortage when demand can't be met; market_price scales with demand/stock ratio (sqrt-dampened, clamped 0.5x-3x base)."
+      },
+      {
+        "id": "commerce-mod-ti-rust",
+        "name": "GoodsRegistry / Inventory / PlayerItems / CommercePlugin",
+        "language": "rust",
+        "score": 0.3309,
+        "contract": "Core commerce types: tradeable-goods registry with deterministic per-station price variance, player cargo/credits inventory, and equippable-item tracking; plugin wires loader + economy + station_economy together."
+      }
+    ],
+    "sb_query": "voxel",
+    "sb_hits": [
+      "GenerationContext  [generation-context-ti-ts]  typescript  ship, procedural, cfgg, context, determinism, to-infinity",
+      "BuildMode / place_block / destroy_block  [surface-building-ti-rust]  rust  planet, building, voxel, bevy, to-infinity",
+      "VoxelWorld / VoxelChunk / generate_chunk / mesh_chunk  [voxel-terrain-ti-rust]  rust  planet, voxel, terrain, destructible, procedural, to-infinity"
+    ],
+    "sb_ids": [
+      "generation-context-ti-ts",
+      "surface-building-ti-rust",
+      "voxel-terrain-ti-rust"
+    ]
+  },
+  {
+    "id": "n15",
+    "expect": "match",
+    "area": "input",
+    "need": "Map keyboard and mouse into flying a ship and walking on foot.",
+    "obvious_query": "input flight",
+    "hits": [
+      {
+        "id": "input-buffer-ti-ts",
+        "name": "InputBufferSystem",
+        "language": "typescript",
+        "score": 0.5047,
+        "contract": "Reads raw keyboard/mouse state each frame and writes it into each player entity's InputBufferComponent for downstream systems (movement, interaction, etc.)."
+      },
+      {
+        "id": "input-mapper-ti-ts",
+        "name": "InputMapper",
+        "language": "typescript",
+        "score": 0.4714,
+        "contract": "Raw keyboard/mouse → InputBufferComponent translation layer. Binds action names to keys; translates browser KeyboardEvent + MouseEvent into directional bools and aim vector each frame."
+      },
+      {
+        "id": "input-mod-ti-rust",
+        "name": "InputPlugin (ship_piloting_input / player_shoot_input / fps_movement_input)",
+        "language": "rust",
+        "score": 0.3616,
+        "contract": "Unified per-GameMode input handling: 6DOF-ish ship flight with piloting-skill and crew-morale speed/turn bonuses plus passive Piloting XP, click/G-key weapon firing with mode-aware aim direction (mouse-unprojected in space, camera-forward on foot), and FPS/surface walking with terrain-height clamping."
+      },
+      {
+        "id": "console-system-ti-ts",
+        "name": "ConsoleSystem",
+        "language": "typescript",
+        "score": 0.3477,
+        "contract": "Handles player/crew interaction with ConsoleComponents — manning a station transfers subsystem control authority, and leaving clears the manning field and revokes authority."
+      },
+      {
+        "id": "seat-system-ti-ts",
+        "name": "SeatSystem",
+        "language": "typescript",
+        "score": 0.3461,
+        "contract": "Manages seat occupancy on vehicles — enter/exit seats, validates range, transfers control authority to the occupant, notifies CommsBus."
+      },
+      {
+        "id": "aim-system-ti-ts",
+        "name": "AimSystem",
+        "language": "typescript",
+        "score": 0.3419,
+        "contract": "Converts screen-center mouse position into a world-space aim ray; optionally applies lead assist offset toward a moving target."
+      },
+      {
+        "id": "ship-mover-ti-ts",
+        "name": "ShipMoverSystem",
+        "language": "typescript",
+        "score": 0.3386,
+        "contract": "Applies thrust, drag, and angular velocity to a piloted vehicle entity; reads pilot input from the occupant's InputBufferComponent."
+      },
+      {
+        "id": "kinematic-character-controller-ti-ts",
+        "name": "KinematicCharacterControllerSystem",
+        "language": "typescript",
+        "score": 0.3212,
+        "contract": "Input-driven kinematic character controller ג€” reads InputBufferComponent, translates directional bools to world-space movement, resolves AABB slide collision against static colliders."
+      }
+    ],
+    "sb_query": "input flight",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n16",
+    "expect": "match",
+    "area": "systems",
+    "need": "Distribute limited power among a ship's subsystems and cut them when supply drops.",
+    "obvious_query": "power grid",
+    "hits": [
+      {
+        "id": "resource-flow-ti-ts",
+        "name": "ResourceFlowSystem",
+        "language": "typescript",
+        "score": 0.3807,
+        "contract": "Tick-based resource transfer along defined routes from source inventories to sink inventories, respecting pipe capacity per tick."
+      },
+      {
+        "id": "power-subsystem-ti-ts",
+        "name": "PowerGrid",
+        "language": "typescript",
+        "score": 0.3596,
+        "contract": "Computes per-vehicle power balance each tick: sums generation from REACTOR subsystems, distributes to consumers by priority, load-sheds lowest-priority consumers when deficit occurs."
+      },
+      {
+        "id": "faction-resources-ti-ts",
+        "name": "FactionResourcePool",
+        "language": "typescript",
+        "score": 0.3272,
+        "contract": "Tracks faction-level resource pools (fuel, crew, munitions, credits) with income/consumption per tick and a ledger of transfers between factions."
+      },
+      {
+        "id": "faction-economy-ti-rust",
+        "name": "Faction-level Resource Economy (supply pools, trade routes, shortages)",
+        "language": "rust",
+        "score": 0.3103,
+        "contract": "Each Faction has a SupplyPool (stocks/capacity/demand/production per Resource type) seeded by faction archetype (Federation produces Components/Food, Raxis produces Weapons and demands Fuel, Pirates produce nothing); tick_economy runs trade-route deliveries on their own cycle timers and a global 10s production/consumption tick, firing FactionResourceShortage when demand can't be met; market_price scales with demand/stock ratio (sqrt-dampened, clamped 0.5x-3x base)."
+      },
+      {
+        "id": "ecs-system-ti-ts",
+        "name": "AbstractSystem",
+        "language": "typescript",
+        "score": 0.2807,
+        "contract": "Abstract System base class. Every concrete system implements update(world, dt). Provides optional onAdd/onRemove lifecycle hooks called by World."
+      },
+      {
+        "id": "commerce-economy-ti-rust",
+        "name": "EconomyState",
+        "language": "rust",
+        "score": 0.2655,
+        "contract": "System-wide price-pressure approximation: kills raise weapons-grade demand, ore pickups lower metal prices, jumps raise fuel demand; pressure decays toward zero over time."
+      },
+      {
+        "id": "power-grid-ti-rust",
+        "name": "PowerGrid / Zone",
+        "language": "rust",
+        "score": 0.2628,
+        "contract": "Per-ship power allocation across weapons/engines/shields (player-adjustable, sums checked against generation capacity); over-allocation degrades all zone effectiveness to 70%, reactor slowly recovers."
+      },
+      {
+        "id": "outpost-manager-panel-ti-rust",
+        "name": "outpost_ui::draw",
+        "language": "rust",
+        "score": 0.2626,
+        "contract": "Outpost Management panel: build-new-outpost buttons by type/cost for the current system, and a scrollable list of owned outposts with level/status/income and an upgrade button once operational."
+      }
+    ],
+    "sb_query": "power grid",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n17",
+    "expect": "match",
+    "area": "player",
+    "need": "Bring a ship in to dock at a station and lock it in place.",
+    "obvious_query": "docking",
+    "hits": [
+      {
+        "id": "docking-system-ti-ts",
+        "name": "DockingSystem",
+        "language": "typescript",
+        "score": 0.6272,
+        "contract": "Manages docking port pairing between two vehicles — approach validation, hard-lock on proximity threshold, airlock cycle simulation, and undocking."
+      },
+      {
+        "id": "station-ti-rust",
+        "name": "detect_docking",
+        "language": "rust",
+        "score": 0.5929,
+        "contract": "Requires the player to hold [F] within clearance range and under a max approach speed for DOCK_SECS continuously before docking completes and switches GameMode to Fps; releasing F or exceeding speed decays progress instead of resetting it instantly."
+      },
+      {
+        "id": "seat-system-ti-ts",
+        "name": "SeatSystem",
+        "language": "typescript",
+        "score": 0.3451,
+        "contract": "Manages seat occupancy on vehicles — enter/exit seats, validates range, transfers control authority to the occupant, notifies CommsBus."
+      },
+      {
+        "id": "seat-ti-rust",
+        "name": "SeatComponent",
+        "language": "rust",
+        "score": 0.3391,
+        "contract": "Design for a seat system where entering a ship seat (Pilot/Turret/Engineering/Tactical/Medical) hands the player direct control of the corresponding subsystem, releasing back to NPC control on exit."
+      },
+      {
+        "id": "crew-behavior-ti-ts",
+        "name": "CrewBehaviorSystem",
+        "language": "typescript",
+        "score": 0.3244,
+        "contract": "Drives crew agent state transitions using a priority-ordered behavior list: combat > repair > man station > patrol > idle; delegates pathfinding to GridPathfinder."
+      },
+      {
+        "id": "probe-network-ti-rust",
+        "name": "ProbeNetwork / Probe / ProbeReport",
+        "language": "rust",
+        "score": 0.3206,
+        "contract": "Long-range sensor probe system: player launches probes to distant systems with a travel-time delay proportional to hop count, then receives a report (station count, threat label, resource/anomaly hints) once travel completes."
+      },
+      {
+        "id": "continuity-anchor-ti-ts",
+        "name": "ContinuityAnchorComponent",
+        "language": "typescript",
+        "score": 0.3155,
+        "contract": "ECS component and types for the continuity anchor — the physical device the player binds to for respawn; tracks deployment, power, integrity, efficiency, and sync state."
+      },
+      {
+        "id": "input-mod-ti-rust",
+        "name": "InputPlugin (ship_piloting_input / player_shoot_input / fps_movement_input)",
+        "language": "rust",
+        "score": 0.3131,
+        "contract": "Unified per-GameMode input handling: 6DOF-ish ship flight with piloting-skill and crew-morale speed/turn bonuses plus passive Piloting XP, click/G-key weapon firing with mode-aware aim direction (mouse-unprojected in space, camera-forward on foot), and FPS/surface walking with terrain-height clamping."
+      }
+    ],
+    "sb_query": "docking",
+    "sb_hits": [
+      "DockingSystem  [docking-system-ti-ts]  typescript  to-infinity, vehicle, docking, system",
+      "CarrierBay / tick_carrier_recovery  [carrier-bay-ti-rust]  rust  carrier, ship, ecs, docking, to-infinity",
+      "detect_docking  [station-ti-rust]  rust  stations, docking, bevy-system, to-infinity",
+      "spawn_interior  [station-interior-ti-rust]  rust  stations, ship-interior, hand-authored, to-infinity",
+      "spawn_station_npcs  [station-npc-ti-rust]  rust  npc, stations, bevy-system, to-infinity",
+      "Carrier Bay operations (launch/recover docked ships)  [carrier-ops-ti-rust]  rust  bevy, carrier, fleet, docking"
+    ],
+    "sb_ids": [
+      "docking-system-ti-ts",
+      "carrier-bay-ti-rust",
+      "station-ti-rust",
+      "station-interior-ti-rust",
+      "station-npc-ti-rust",
+      "carrier-ops-ti-rust"
+    ]
+  },
+  {
+    "id": "n18",
+    "expect": "match",
+    "area": "persistence",
+    "need": "Save the whole game state to disk and load it back later.",
+    "obvious_query": "save load",
+    "hits": [
+      {
+        "id": "persistence-mod-ti-rust",
+        "name": "SaveData / save_game / load_game / PersistencePlugin",
+        "language": "rust",
+        "score": 0.4487,
+        "contract": "Native-file save/load replacing the JS version's localStorage: serializes player health/inventory/items/faction rep/skills/titles/captain's log plus galaxy progress counters to a versioned JSON file, with autosave every 5 minutes."
+      },
+      {
+        "id": "persistence-manager-ti-ts",
+        "name": "PersistenceManager",
+        "language": "typescript",
+        "score": 0.4158,
+        "contract": "Static save/load manager ג€” serializes World state to named slots; captures player coords as metadata; validates JSON integrity before deserializing."
+      },
+      {
+        "id": "save-slots-ti-ts",
+        "name": "SaveSlotManager",
+        "language": "typescript",
+        "score": 0.4136,
+        "contract": "Named save slot manager — list, create, delete, and load slots; stores metadata index and delegates data to PersistenceManager."
+      },
+      {
+        "id": "jsonl-append-log-py",
+        "name": "JsonlRunLog",
+        "language": "python",
+        "score": 0.3671,
+        "contract": "Append-only JSONL log, flushed per line, that can be read back to replay or audit a run."
+      },
+      {
+        "id": "ecs-world-ti-ts",
+        "name": "World",
+        "language": "typescript",
+        "score": 0.3585,
+        "contract": "ECS World ג€” entity registry, typed component maps, system runner, full JSON serialize/deserialize."
+      },
+      {
+        "id": "surface-persist-ti-rust",
+        "name": "save_surface_on_liftoff / load_surface_on_land",
+        "language": "rust",
+        "score": 0.3462,
+        "contract": "Persists player-placed building blocks (from building.rs) per-planet to a JSON file under %APPDATA%/ToInfinity/, saved on liftoff and reloaded on landing."
+      },
+      {
+        "id": "order-system-ti-ts",
+        "name": "OrderSystem",
+        "language": "typescript",
+        "score": 0.3389,
+        "contract": "In-world order lifecycle manager — issue, relay, acknowledge, and cancel orders; each order travels through CommsBus and is tracked by status."
+      },
+      {
+        "id": "delta-serializer-ti-ts",
+        "name": "DeltaSerializer",
+        "language": "typescript",
+        "score": 0.3382,
+        "contract": "Differential save — store only component fields that changed since last snapshot. compare(baseline, current) returns a ComponentDelta[]; apply(baseline, deltas) reconstructs current state."
+      }
+    ],
+    "sb_query": "save load",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n19",
+    "expect": "match",
+    "area": "progression",
+    "need": "A research tree the player unlocks over time to gain new abilities.",
+    "obvious_query": "tech tree",
+    "hits": [
+      {
+        "id": "progression-plugin-ti-rust",
+        "name": "ProgressionPlugin",
+        "language": "rust",
+        "score": 0.3243,
+        "contract": "Bevy plugin wiring together skills, titles, captain's log, missions, and both tech-progression subsystems into the app."
+      },
+      {
+        "id": "progression-tech-knowledge-ti-rust",
+        "name": "TechKnowledge",
+        "language": "rust",
+        "score": 0.3114,
+        "contract": "Discovery-based technology knowledge system (Unknown/Observed/Partial/Known) advanced by scanning, capturing samples, engineer research time, or blueprint theft — explicitly not a menu tech tree."
+      },
+      {
+        "id": "progression-tech-ti-rust",
+        "name": "TechProgress",
+        "language": "rust",
+        "score": 0.2912,
+        "contract": "Kill-and-combine tech system: enemies drop random components on death (roll_drop), and combining 3 of the same component at a station permanently unlocks a stat bonus."
+      },
+      {
+        "id": "goal-system-ti-ts",
+        "name": "GoalSystem",
+        "language": "typescript",
+        "score": 0.2785,
+        "contract": "Priority-based goal stack for AI agents — push, pop, interrupt; evaluates goal conditions each tick and advances the top goal toward completion."
+      },
+      {
+        "id": "npc-character-ti-rust",
+        "name": "CharacterProfile",
+        "language": "rust",
+        "score": 0.2663,
+        "contract": "Deep NPC character-state component: personality traits (loyalty/bravery modifiers), 6-axis skills with diminishing-returns growth and legendary thresholds (>=1.8/2.0), event memory with running-average mood, inter-NPC relationship sentiment, and permanent death."
+      },
+      {
+        "id": "battle-converter-ti-ts",
+        "name": "BattleConverter",
+        "language": "typescript",
+        "score": 0.2476,
+        "contract": "Collapses an ongoing L2 (full-fidelity) battle into a statistical L0 outcome when all combatants move out of observer range; and expands a L0 battle back to L2 when an observer enters range."
+      },
+      {
+        "id": "continuity-manager-ti-ts",
+        "name": "ContinuityManager",
+        "language": "typescript",
+        "score": 0.2424,
+        "contract": "Manages player death and respawn ג€” validates anchor viability, calculates distance-based respawn delay, advances timers, emits RespawnEvent when ready."
+      },
+      {
+        "id": "progression-missions-ti-rust",
+        "name": "MissionBoard",
+        "language": "rust",
+        "score": 0.2394,
+        "contract": "Single-active-mission board that generates bounty/delivery missions, tracks a countdown timer, and pays out credits + Leadership XP on completion."
+      }
+    ],
+    "sb_query": "tech tree",
+    "sb_hits": [
+      "TechKnowledge  [progression-tech-knowledge-ti-rust]  rust  progression, tech-tree, research, to-infinity"
+    ],
+    "sb_ids": [
+      "progression-tech-knowledge-ti-rust"
+    ]
+  },
+  {
+    "id": "n20",
+    "expect": "match",
+    "area": "ai",
+    "need": "Give each faction a brain that decides what to do each tick.",
+    "obvious_query": "faction ai",
+    "hits": [
+      {
+        "id": "faction-ai-ti-ts",
+        "name": "FactionAI",
+        "language": "typescript",
+        "score": 0.4154,
+        "contract": "High-level faction decision system — evaluates fleet strength, resource state, and diplomatic relations to issue fleet-level orders (attack, retreat, trade, ally)."
+      },
+      {
+        "id": "goal-system-ti-ts",
+        "name": "GoalSystem",
+        "language": "typescript",
+        "score": 0.3995,
+        "contract": "Priority-based goal stack for AI agents — push, pop, interrupt; evaluates goal conditions each tick and advances the top goal toward completion."
+      },
+      {
+        "id": "faction-ai-ti-rust",
+        "name": "tick_faction_ai / FactionAiState",
+        "language": "rust",
+        "score": 0.3786,
+        "contract": "Autonomous faction fleet AI: every ~90s per faction, spawns a FactionFleet with an order (PatrolBorder/AttackWeak/TradeRoute/etc); resolves attack outcomes via a Lanchester square-law abstract battle and adjusts SectorControl influence accordingly."
+      },
+      {
+        "id": "utility-ai-system-ti-ts",
+        "name": "UtilityAISystem",
+        "language": "typescript",
+        "score": 0.3652,
+        "contract": "Utility-based AI for crew agents — evaluates repair and station-manning utility scores each tick, selects the highest-scoring job, and executes movement + action toward it."
+      },
+      {
+        "id": "targeting-system-ti-ts",
+        "name": "TargetingSystem",
+        "language": "typescript",
+        "score": 0.3393,
+        "contract": "Selects the highest-priority target for each armed agent or weapon subsystem based on range, faction, and threat score; writes targetEntity into AgentComponent."
+      },
+      {
+        "id": "delegation-chain-ti-ts",
+        "name": "DelegationChain",
+        "language": "typescript",
+        "score": 0.3329,
+        "contract": "Manages fallback command authority — when the player dies or becomes unavailable, resolves the next eligible officer in the chain and transfers active orders to them."
+      },
+      {
+        "id": "subsystem-slot-ti-ts",
+        "name": "SubsystemComponent",
+        "language": "typescript",
+        "score": 0.3197,
+        "contract": "ECS component for a ship subsystem (reactor, engine, shield, etc.) with power budget, efficiency, integrity, and operational state."
+      },
+      {
+        "id": "crew-behavior-ti-ts",
+        "name": "CrewBehaviorSystem",
+        "language": "typescript",
+        "score": 0.3189,
+        "contract": "Drives crew agent state transitions using a priority-ordered behavior list: combat > repair > man station > patrol > idle; delegates pathfinding to GridPathfinder."
+      }
+    ],
+    "sb_query": "faction ai",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n21",
+    "expect": "closest",
+    "area": "physics",
+    "need": "Simulate liquid sloshing inside a sealed tank as the tank tilts and spins.",
+    "obvious_query": "fluid",
+    "hits": [
+      {
+        "id": "ship-ti-rust",
+        "name": "apply_velocity_system",
+        "language": "rust",
+        "score": 0.3169,
+        "contract": "Integrates linear and angular Velocity into Transform each frame for every entity that has both."
+      },
+      {
+        "id": "ship-mover-ti-ts",
+        "name": "ShipMoverSystem",
+        "language": "typescript",
+        "score": 0.2857,
+        "contract": "Applies thrust, drag, and angular velocity to a piloted vehicle entity; reads pilot input from the occupant's InputBufferComponent."
+      },
+      {
+        "id": "spawner-ti-rust",
+        "name": "populate_system_on_jump",
+        "language": "rust",
+        "score": 0.2347,
+        "contract": "On JumpEvent, spawns a weighted-random wave of enemy and ally ships from the destination system's spawn pools, each with full combat components (Health, Velocity, CombatStats, ShipSubsystems, AiState, FidelityComponent) and, for capital ships, a stocked CarrierBay."
+      },
+      {
+        "id": "cave-mesh-gen-ti-rust",
+        "name": "stream_cave_chunks / build_cave_mesh",
+        "language": "rust",
+        "score": 0.229,
+        "contract": "Streams small underground CaveChunk entities around the player when below y=2, generating a simplified marching-cubes-lite mesh from PlanetNoise::cave_density."
+      },
+      {
+        "id": "subsystems-ti-rust",
+        "name": "ShipSubsystems",
+        "language": "rust",
+        "score": 0.2265,
+        "contract": "Per-ship subsystem damage model — engines/weapons/shields/sensors/life_support/reactor each get independent HP (as a fraction of ship max HP), degrade effectiveness continuously as they take damage, and disable entirely at 0 HP; targeting a subsystem routes half of incoming damage to it instead of the hull."
+      },
+      {
+        "id": "power-grid-system-ti-rust",
+        "name": "PowerGrid",
+        "language": "rust",
+        "score": 0.2228,
+        "contract": "Per-ship power allocation across Weapons/Engines/Shields zones (each 0-100, generation capacity 100); over-allocation past generation capacity degrades all zone effectiveness to 70%, reactor regenerates 0.5/s, and effectiveness() feeds other systems a multiplier per zone."
+      },
+      {
+        "id": "topology-engine-ti-ts",
+        "name": "TopologyEngine",
+        "language": "typescript",
+        "score": 0.2214,
+        "contract": "Ship room graph engine ג€” builds adjacency graph from ShipLayoutDefinition; Dijkstra pathfinding, reachability, island detection, bottleneck detection, flow propagation, and metrics."
+      },
+      {
+        "id": "shields-ti-rust",
+        "name": "Shields",
+        "language": "rust",
+        "score": 0.2163,
+        "contract": "Component tracking shield HP that absorbs incoming damage before hull; regenerates over time after a hit-cooldown, with player regen boosted by Engineering skill."
+      }
+    ],
+    "sb_query": "fluid",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n22",
+    "expect": "closest",
+    "area": "ui",
+    "need": "Players edit their base; I need an undo/redo history of their actions.",
+    "obvious_query": "undo",
+    "hits": [
+      {
+        "id": "progression-log-ti-rust",
+        "name": "CaptainsLog",
+        "language": "rust",
+        "score": 0.4577,
+        "contract": "Append-only categorized event log (combat/trade/faction/exploration/discovery/mission) with dedupe-by-key and a 500-entry cap."
+      },
+      {
+        "id": "consequence-tracker-ti-ts",
+        "name": "ConsequenceTracker",
+        "language": "typescript",
+        "score": 0.4329,
+        "contract": "Records causal chains of simulation events — action → immediate effect → downstream consequences — for post-hoc narrative display and faction memory."
+      },
+      {
+        "id": "ecs-system-ti-ts",
+        "name": "AbstractSystem",
+        "language": "typescript",
+        "score": 0.4171,
+        "contract": "Abstract System base class. Every concrete system implements update(world, dt). Provides optional onAdd/onRemove lifecycle hooks called by World."
+      },
+      {
+        "id": "persistence-mod-ti-rust",
+        "name": "SaveData / save_game / load_game / PersistencePlugin",
+        "language": "rust",
+        "score": 0.4082,
+        "contract": "Native-file save/load replacing the JS version's localStorage: serializes player health/inventory/items/faction rep/skills/titles/captain's log plus galaxy progress counters to a versioned JSON file, with autosave every 5 minutes."
+      },
+      {
+        "id": "delta-serializer-ti-ts",
+        "name": "DeltaSerializer",
+        "language": "typescript",
+        "score": 0.3902,
+        "contract": "Differential save — store only component fields that changed since last snapshot. compare(baseline, current) returns a ComponentDelta[]; apply(baseline, deltas) reconstructs current state."
+      },
+      {
+        "id": "fidelity-system-ti-ts",
+        "name": "FidelitySystem",
+        "language": "typescript",
+        "score": 0.3674,
+        "contract": "ECS system that syncs Observer and Fidelity components into FidelityManager each tick and logs level transitions (L0/L1/L2)."
+      },
+      {
+        "id": "continuity-anchor-ti-ts",
+        "name": "ContinuityAnchorComponent",
+        "language": "typescript",
+        "score": 0.3628,
+        "contract": "ECS component and types for the continuity anchor — the physical device the player binds to for respawn; tracks deployment, power, integrity, efficiency, and sync state."
+      },
+      {
+        "id": "deterministic-id-factory-py",
+        "name": "IdFactory",
+        "language": "python",
+        "score": 0.3608,
+        "contract": "Counter-based identifier source, one counter per namespace, so the same sequence of steps produces the same ids."
+      }
+    ],
+    "sb_query": "undo",
+    "sb_hits": [
+      "DockingSystem  [docking-system-ti-ts]  typescript  to-infinity, vehicle, docking, system",
+      "spawn_station_npcs  [station-npc-ti-rust]  rust  npc, stations, bevy-system, to-infinity"
+    ],
+    "sb_ids": [
+      "docking-system-ti-ts",
+      "station-npc-ti-rust"
+    ]
+  },
+  {
+    "id": "n23",
+    "expect": "closest",
+    "area": "netcode",
+    "need": "Smooth the jitter between a client's predicted movement and the server's authoritative position.",
+    "obvious_query": "netcode",
+    "hits": [
+      {
+        "id": "order-system-ti-ts",
+        "name": "OrderSystem",
+        "language": "typescript",
+        "score": 0.2974,
+        "contract": "In-world order lifecycle manager — issue, relay, acknowledge, and cancel orders; each order travels through CommsBus and is tracked by status."
+      },
+      {
+        "id": "faction-ai-ti-rust",
+        "name": "tick_faction_ai / FactionAiState",
+        "language": "rust",
+        "score": 0.2779,
+        "contract": "Autonomous faction fleet AI: every ~90s per faction, spawns a FactionFleet with an order (PatrolBorder/AttackWeak/TradeRoute/etc); resolves attack outcomes via a Lanchester square-law abstract battle and adjusts SectorControl influence accordingly."
+      },
+      {
+        "id": "tickclock-ti-ts",
+        "name": "TickClock",
+        "language": "typescript",
+        "score": 0.276,
+        "contract": "Global tick counter and elapsed time tracker — single source of truth for determinism; must be advanced by GameLoop."
+      },
+      {
+        "id": "continuity-anchor-ti-ts",
+        "name": "ContinuityAnchorComponent",
+        "language": "typescript",
+        "score": 0.2722,
+        "contract": "ECS component and types for the continuity anchor — the physical device the player binds to for respawn; tracks deployment, power, integrity, efficiency, and sync state."
+      },
+      {
+        "id": "faction-war-ti-rust",
+        "name": "WarState / tick_war",
+        "language": "rust",
+        "score": 0.2692,
+        "contract": "Abstract territorial war sim: contested systems accumulate war pressure each 60s tick and flip control to the attacking faction at pressure >= 1.0, logging to CaptainsLog only when the player is present."
+      },
+      {
+        "id": "consequence-tracker-ti-ts",
+        "name": "ConsequenceTracker",
+        "language": "typescript",
+        "score": 0.2606,
+        "contract": "Records causal chains of simulation events — action → immediate effect → downstream consequences — for post-hoc narrative display and faction memory."
+      },
+      {
+        "id": "ecs-system-ti-ts",
+        "name": "AbstractSystem",
+        "language": "typescript",
+        "score": 0.2595,
+        "contract": "Abstract System base class. Every concrete system implements update(world, dt). Provides optional onAdd/onRemove lifecycle hooks called by World."
+      },
+      {
+        "id": "sector-control-ti-rust",
+        "name": "SectorControl / SystemInfluence",
+        "language": "rust",
+        "score": 0.2573,
+        "contract": "Tracks per-system faction influence (0-100) and derives a controller (highest influence, must exceed 20) and contested flag (top two within 10 points); tick_sector_control adds influence per living ship present in the player's current system every 5s and applies gentle decay above 50."
+      }
+    ],
+    "sb_query": "netcode",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n24",
+    "expect": "closest",
+    "area": "ui",
+    "need": "Swap every UI label to another language at runtime from translation tables.",
+    "obvious_query": "localization",
+    "hits": [
+      {
+        "id": "sb-app-js",
+        "name": "Spell Book Frontend JS",
+        "language": "javascript",
+        "score": 0.2915,
+        "contract": "Full SPA frontend: entry cards, sidebar filters, add/edit/defaults modal, settings panel, export ZIP, batch ops."
+      },
+      {
+        "id": "deterministic-id-factory-py",
+        "name": "IdFactory",
+        "language": "python",
+        "score": 0.2562,
+        "contract": "Counter-based identifier source, one counter per namespace, so the same sequence of steps produces the same ids."
+      },
+      {
+        "id": "persistence-mod-ti-rust",
+        "name": "SaveData / save_game / load_game / PersistencePlugin",
+        "language": "rust",
+        "score": 0.2183,
+        "contract": "Native-file save/load replacing the JS version's localStorage: serializes player health/inventory/items/faction rep/skills/titles/captain's log plus galaxy progress counters to a versioned JSON file, with autosave every 5 minutes."
+      },
+      {
+        "id": "progression-titles-ti-rust",
+        "name": "PlayerTitles",
+        "language": "rust",
+        "score": 0.2023,
+        "contract": "Unlockable player titles (First Blood, Veteran, Ace, Navigator, Trader, Elite Pilot, Explorer) checked each frame against GalaxyState/PlayerSkills/FactionRep condition functions."
+      },
+      {
+        "id": "stochastic-selector-ti-ts",
+        "name": "StochasticSelector",
+        "language": "typescript",
+        "score": 0.2015,
+        "contract": "Grammar expansion option selector ג€” filters unaffordable candidates, uses greedy mandatory-first selection in termination phase, and weighted random in normal phase."
+      },
+      {
+        "id": "commerce-mod-ti-rust",
+        "name": "GoodsRegistry / Inventory / PlayerItems / CommercePlugin",
+        "language": "rust",
+        "score": 0.1851,
+        "contract": "Core commerce types: tradeable-goods registry with deterministic per-station price variance, player cargo/credits inventory, and equippable-item tracking; plugin wires loader + economy + station_economy together."
+      },
+      {
+        "id": "sb-core-lib",
+        "name": "Spell Book Core Library",
+        "language": "rust",
+        "score": 0.1847,
+        "contract": "Shared logic: Entry/Settings structs, catalog CRUD, config r/w, library dir resolution."
+      },
+      {
+        "id": "station-npc-ti-rust",
+        "name": "spawn_station_npcs",
+        "language": "rust",
+        "score": 0.1808,
+        "contract": "On docking, spawns one NPC entity per npc_slot defined on the docked station, assigning deterministic personality traits and phrase banks by archetype; despawns them all on undocking."
+      }
+    ],
+    "sb_query": "localization",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n25",
+    "expect": "closest",
+    "area": "ai",
+    "need": "Find the shortest walkable path across a grid avoiding obstacles.",
+    "obvious_query": "pathfinding",
+    "hits": [
+      {
+        "id": "pathfinding-ti-ts",
+        "name": "GridPathfinder",
+        "language": "typescript",
+        "score": 0.5683,
+        "contract": "A* grid pathfinder for crew and agent navigation within a ship; returns a world-space waypoint path through room centers."
+      },
+      {
+        "id": "topology-engine-ti-ts",
+        "name": "TopologyEngine",
+        "language": "typescript",
+        "score": 0.4846,
+        "contract": "Ship room graph engine ג€” builds adjacency graph from ShipLayoutDefinition; Dijkstra pathfinding, reachability, island detection, bottleneck detection, flow propagation, and metrics."
+      },
+      {
+        "id": "spatial-grid-ti-ts",
+        "name": "SpatialGridSystem",
+        "language": "typescript",
+        "score": 0.4666,
+        "contract": "Uniform spatial hash grid ג€” rebuilds from all Transform+Collider entities each tick; provides broadphase radius queries."
+      },
+      {
+        "id": "navgraph-astar-ti-rust",
+        "name": "NavGraph",
+        "language": "rust",
+        "score": 0.4465,
+        "contract": "A* waypoint-graph pathfinder intended for interior enemy navigation: nodes have world positions and neighbor lists; find_path(start, goal) snaps to nearest nodes and returns a reconstructed world-space path."
+      },
+      {
+        "id": "cell-hasher-ti-ts",
+        "name": "CellHasher",
+        "language": "typescript",
+        "score": 0.41,
+        "contract": "3D integer cell hasher with configurable cell size. Converts world positions to cell keys; used internally by SpatialGrid and externally by any broadphase code."
+      },
+      {
+        "id": "nav-graph-astar-ti-rust",
+        "name": "NavGraph / find_path",
+        "language": "rust",
+        "score": 0.4065,
+        "contract": "A* waypoint-graph pathfinder intended for interior-enemy navigation between named nodes, with nearest-node snapping for arbitrary start/goal world positions."
+      },
+      {
+        "id": "spatial-query-ti-ts",
+        "name": "SpatialQuery",
+        "language": "typescript",
+        "score": 0.3522,
+        "contract": "High-level query API over SpatialGridSystem — nearest entity, k-nearest, all within radius. Wraps raw cell lookups into convenient call signatures for systems."
+      },
+      {
+        "id": "city-layout-gen-ti-rust",
+        "name": "generate / generate_floor_plan (CityLayout)",
+        "language": "rust",
+        "score": 0.3516,
+        "contract": "Deterministic (LCG-seeded) procedural city street-grid + zoned plot generator, plus a BSP-based building floor plan generator; pure data generation, no rendering."
+      }
+    ],
+    "sb_query": "pathfinding",
+    "sb_hits": [
+      "TopologyEngine  [topology-engine-ti-ts]  typescript  ship, layout, graph, pathfinding, dijkstra, topology, to-infinity",
+      "SpatialLayoutResolver  [spatial-layout-resolver-ti-ts]  typescript  ship, layout, spatial, obb, socket, pathfinding, to-infinity",
+      "GridPathfinder  [pathfinding-ti-ts]  typescript  to-infinity, ai, pathfinding, grid",
+      "CrewBehaviorSystem  [crew-behavior-ti-ts]  typescript  to-infinity, ai, crew, behavior, system",
+      "NavGraph / find_path  [nav-graph-astar-ti-rust]  rust  pathfinding, astar, navigation, interior, to-infinity",
+      "NavGraph  [navgraph-astar-ti-rust]  rust  pathfinding, astar, ai, navigation, orphaned, to-infinity"
+    ],
+    "sb_ids": [
+      "topology-engine-ti-ts",
+      "spatial-layout-resolver-ti-ts",
+      "pathfinding-ti-ts",
+      "crew-behavior-ti-ts",
+      "nav-graph-astar-ti-rust",
+      "navgraph-astar-ti-rust"
+    ]
+  },
+  {
+    "id": "n26",
+    "expect": "none",
+    "area": "out",
+    "need": "Parse a PDF invoice and pull out the line items, quantities and totals.",
+    "obvious_query": "pdf invoice",
+    "hits": [
+      {
+        "id": "sb-app-js",
+        "name": "Spell Book Frontend JS",
+        "language": "javascript",
+        "score": 0.2357,
+        "contract": "Full SPA frontend: entry cards, sidebar filters, add/edit/defaults modal, settings panel, export ZIP, batch ops."
+      },
+      {
+        "id": "text-block-compose-py",
+        "name": "textblock",
+        "language": "python",
+        "score": 0.2214,
+        "contract": "Plain-text block composition: titled sections, rules, banners, bullets, wrapping that preserves deliberate blank and indented lines."
+      },
+      {
+        "id": "grammar-analyzer-ti-ts",
+        "name": "GrammarAnalyzer",
+        "language": "typescript",
+        "score": 0.2134,
+        "contract": "Static grammar analysis — computes minimum cost/room-count for all symbols via Knuth hypergraph relaxation; validates solvability and checks affordability of expansion options."
+      },
+      {
+        "id": "sb-app-html",
+        "name": "Spell Book Frontend HTML",
+        "language": "html",
+        "score": 0.2095,
+        "contract": "App shell: sidebar, topbar, cards grid, entry modal, settings modal, confirm dialog, toast container."
+      },
+      {
+        "id": "stochastic-selector-ti-ts",
+        "name": "StochasticSelector",
+        "language": "typescript",
+        "score": 0.1921,
+        "contract": "Grammar expansion option selector ג€” filters unaffordable candidates, uses greedy mandatory-first selection in termination phase, and weighted random in normal phase."
+      },
+      {
+        "id": "sb-core-lib",
+        "name": "Spell Book Core Library",
+        "language": "rust",
+        "score": 0.1876,
+        "contract": "Shared logic: Entry/Settings structs, catalog CRUD, config r/w, library dir resolution."
+      },
+      {
+        "id": "unit-contract-with-inheritance-py",
+        "name": "Contract",
+        "language": "python",
+        "score": 0.1803,
+        "contract": "An interface plus its position in a graph: inputs, outputs, invariants, inherited constraints, and derived neighbour references."
+      },
+      {
+        "id": "combat-system-ti-ts",
+        "name": "CombatSystem",
+        "language": "typescript",
+        "score": 0.179,
+        "contract": "Tick-based weapon system — finds nearest enemy vehicle per weapon, resolves accuracy roll, applies layered damage (armor reduction, room hit, subsystem penetration)."
+      }
+    ],
+    "sb_query": "pdf invoice",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n27",
+    "expect": "none",
+    "area": "out",
+    "need": "Refresh an expired OAuth2 bearer token and retry the failed HTTPS request.",
+    "obvious_query": "oauth token",
+    "hits": [
+      {
+        "id": "continuity-manager-ti-ts",
+        "name": "ContinuityManager",
+        "language": "typescript",
+        "score": 0.342,
+        "contract": "Manages player death and respawn ג€” validates anchor viability, calculates distance-based respawn delay, advances timers, emits RespawnEvent when ready."
+      },
+      {
+        "id": "continuity-anchor-ti-ts",
+        "name": "ContinuityAnchorComponent",
+        "language": "typescript",
+        "score": 0.3406,
+        "contract": "ECS component and types for the continuity anchor — the physical device the player binds to for respawn; tracks deployment, power, integrity, efficiency, and sync state."
+      },
+      {
+        "id": "continuity-system-ti-ts",
+        "name": "ContinuitySystem",
+        "language": "typescript",
+        "score": 0.3211,
+        "contract": "ECS system that syncs anchor and player entities into ContinuityManager, processes respawn events, and writes results back to PlayerStateComponent and TransformComponent."
+      },
+      {
+        "id": "continuity-death-ti-rust",
+        "name": "Player Continuity: anchor, death, respawn, permanent death",
+        "language": "rust",
+        "score": 0.3142,
+        "contract": "Implements the continuity-anchor design: player death starts a respawn timer scaled by distance from the ContinuityAnchor entity (5-120s), teleports player to the anchor at 30% HP on timer expiry, and converts to PermanentDeath if the anchor is destroyed while the player is dead."
+      },
+      {
+        "id": "order-system-ti-ts",
+        "name": "OrderSystem",
+        "language": "typescript",
+        "score": 0.3098,
+        "contract": "In-world order lifecycle manager — issue, relay, acknowledge, and cancel orders; each order travels through CommsBus and is tracked by status."
+      },
+      {
+        "id": "respawn-calculator-ti-ts",
+        "name": "RespawnCalculator",
+        "language": "typescript",
+        "score": 0.3037,
+        "contract": "Pure function that computes the respawn delay in seconds based on distance from death to nearest powered anchor, with multipliers for anchor efficiency and sync state."
+      },
+      {
+        "id": "repair-system-ti-ts",
+        "name": "RepairSystem",
+        "language": "typescript",
+        "score": 0.3015,
+        "contract": "Restores room and subsystem integrity over time when a crew agent with REPAIR state is present and provides a requestRepair() API for ordered repair tasks."
+      },
+      {
+        "id": "continuity-types-ti-ts",
+        "name": "ContinuityTypes",
+        "language": "typescript",
+        "score": 0.3003,
+        "contract": "Canonical type definitions for the continuity pillar — PlayerStatus enum, PlayerState component, RespawnEvent, ContinuityAnchorComponent. Single source of truth imported by continuity-manager, delegation-on-death, respawn-calculator."
+      }
+    ],
+    "sb_query": "oauth token",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n28",
+    "expect": "none",
+    "area": "out",
+    "need": "Train a gradient-boosted decision tree on a CSV and report feature importances.",
+    "obvious_query": "gradient boosting",
+    "hits": [
+      {
+        "id": "progression-tech-knowledge-ti-rust",
+        "name": "TechKnowledge",
+        "language": "rust",
+        "score": 0.243,
+        "contract": "Discovery-based technology knowledge system (Unknown/Observed/Partial/Known) advanced by scanning, capturing samples, engineer research time, or blueprint theft — explicitly not a menu tech tree."
+      },
+      {
+        "id": "faction-ai-ti-rust",
+        "name": "tick_faction_ai / FactionAiState",
+        "language": "rust",
+        "score": 0.2428,
+        "contract": "Autonomous faction fleet AI: every ~90s per faction, spawns a FactionFleet with an order (PatrolBorder/AttackWeak/TradeRoute/etc); resolves attack outcomes via a Lanchester square-law abstract battle and adjusts SectorControl influence accordingly."
+      },
+      {
+        "id": "progression-plugin-ti-rust",
+        "name": "ProgressionPlugin",
+        "language": "rust",
+        "score": 0.2228,
+        "contract": "Bevy plugin wiring together skills, titles, captain's log, missions, and both tech-progression subsystems into the app."
+      },
+      {
+        "id": "utility-ai-system-ti-ts",
+        "name": "UtilityAISystem",
+        "language": "typescript",
+        "score": 0.2176,
+        "contract": "Utility-based AI for crew agents — evaluates repair and station-manning utility scores each tick, selects the highest-scoring job, and executes movement + action toward it."
+      },
+      {
+        "id": "battle-converter-ti-ts",
+        "name": "BattleConverter",
+        "language": "typescript",
+        "score": 0.2141,
+        "contract": "Collapses an ongoing L2 (full-fidelity) battle into a statistical L0 outcome when all combatants move out of observer range; and expands a L0 battle back to L2 when an observer enters range."
+      },
+      {
+        "id": "asteroid-derelict-field-ti-rust",
+        "name": "spawn_asteroid_field / spawn_derelict / Asteroid / Derelict / OrePickup",
+        "language": "rust",
+        "score": 0.2081,
+        "contract": "Spawns individually-simulated asteroid fields (with scannable mineral veins) and deterministic-lore derelict wrecks, plus ore-pickup lifecycle (drop on asteroid death, player pickup, expiry)."
+      },
+      {
+        "id": "station-npc-ti-rust",
+        "name": "spawn_station_npcs",
+        "language": "rust",
+        "score": 0.2021,
+        "contract": "On docking, spawns one NPC entity per npc_slot defined on the docked station, assigning deterministic personality traits and phrase banks by archetype; despawns them all on undocking."
+      },
+      {
+        "id": "scan-ti-rust",
+        "name": "scan_derelicts",
+        "language": "rust",
+        "score": 0.194,
+        "contract": "On [E] keypress while piloting, finds the nearest derelict within 80m, grants credits+cargo+XP, and logs the salvage event; one scan per keypress."
+      }
+    ],
+    "sb_query": "gradient boosting",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n29",
+    "expect": "none",
+    "area": "out",
+    "need": "Detect human faces in a photograph and blur them out.",
+    "obvious_query": "face detection",
+    "hits": [
+      {
+        "id": "hitscan-resolver-ti-ts",
+        "name": "HitscanResolverSystem",
+        "language": "typescript",
+        "score": 0.2059,
+        "contract": "Hitscan ray ג€” sphere broadphase via SpatialGrid; dot-product cone narrowphase; routes damage through DamageSystem to the closest valid target."
+      },
+      {
+        "id": "damage-indicator-ti-ts",
+        "name": "DamageIndicator",
+        "language": "typescript",
+        "score": 0.2055,
+        "contract": "Tracks recent damage events received by the player, computes directional hit angles relative to camera forward, and produces flash indicators for HUD rendering."
+      },
+      {
+        "id": "atmosphere-fog-ti-rust",
+        "name": "update_atmosphere",
+        "language": "rust",
+        "score": 0.2047,
+        "contract": "Sets per-biome fog color/falloff on the camera's FogSettings based on the active planet's type when in Surface game mode, and disables it otherwise."
+      },
+      {
+        "id": "frustum-culler-ti-ts",
+        "name": "FrustumCuller",
+        "language": "typescript",
+        "score": 0.198,
+        "contract": "View-frustum AABB test — isVisible(aabb, planes) returns true if box intersects all 6 frustum half-spaces. Used by renderer and FidelitySystem to skip L2 simulation on off-screen entities."
+      },
+      {
+        "id": "sb-app-css",
+        "name": "Spell Book Frontend CSS",
+        "language": "css",
+        "score": 0.1712,
+        "contract": "All app styles: CSS variables, dark/light theme, sidebar, cards, modals, filters, chips, toasts."
+      },
+      {
+        "id": "damage-indicator-hud-ti-rust",
+        "name": "DamageIndicatorSystem / draw_damage_indicators",
+        "language": "rust",
+        "score": 0.1705,
+        "contract": "Directional hit-flash overlay: tracks recent hits as angle+intensity+time_remaining entries and paints fading red arc segments around the screen edge indicating incoming-damage direction."
+      },
+      {
+        "id": "spatial-grid-ti-ts",
+        "name": "SpatialGridSystem",
+        "language": "typescript",
+        "score": 0.163,
+        "contract": "Uniform spatial hash grid ג€” rebuilds from all Transform+Collider entities each tick; provides broadphase radius queries."
+      },
+      {
+        "id": "camera-system-ti-ts",
+        "name": "CameraSystem",
+        "language": "typescript",
+        "score": 0.1614,
+        "contract": "First-person camera controller — follows the player entity, applies camera offset for eye height, smoothly transitions to seat override positions, and holds on last known position when player is dead."
+      }
+    ],
+    "sb_query": "face detection",
+    "sb_hits": [],
+    "sb_ids": []
+  },
+  {
+    "id": "n30",
+    "expect": "none",
+    "area": "out",
+    "need": "Transcode a video file to H.264 and write it back out.",
+    "obvious_query": "video transcode",
+    "hits": [
+      {
+        "id": "fov-controller-ti-ts",
+        "name": "FovController",
+        "language": "typescript",
+        "score": 0.3543,
+        "contract": "Dynamic FOV controller — lerps camera FOV based on player state: sprint (+10°), scope (-30°), cinematic override (fixed). Returns current FOV each tick for renderer consumption."
+      },
+      {
+        "id": "input-buffer-ti-ts",
+        "name": "InputBufferSystem",
+        "language": "typescript",
+        "score": 0.3306,
+        "contract": "Reads raw keyboard/mouse state each frame and writes it into each player entity's InputBufferComponent for downstream systems (movement, interaction, etc.)."
+      },
+      {
+        "id": "asset-converter-cli-ti-ts",
+        "name": "AssetConverterCli",
+        "language": "typescript",
+        "score": 0.3245,
+        "contract": "CLI entry point — scans assets/raw for FBX/OBJ files, calls GbiProcessor.suggestMetadata for each, writes results to assets/processed/gbi_metadata.json. Run as: ts-node src/scripts/assetPipeline.ts <rawDir> <outFile>"
+      },
+      {
+        "id": "gbi-processor-ti-ts",
+        "name": "GbiProcessor",
+        "language": "typescript",
+        "score": 0.3168,
+        "contract": "Scans raw FBX/OBJ filenames and heuristically generates GbiAssetMetadata ג€” size from NxM patterns, type from keywords, and default face sockets for ROOM/HALLWAY types."
+      },
+      {
+        "id": "fidelity-manager-ti-rust",
+        "name": "FidelityManager / FidelityComponent / FidelityObserver",
+        "language": "rust",
+        "score": 0.3041,
+        "contract": "Dynamic L0/L1/L2 fidelity-of-simulation budget system: assigns each entity a simulation level based on distance to observers, per-entity importance multiplier, and frame-time budget pressure, with anti-thrash hysteresis and force-lock for combat/boarding."
+      },
+      {
+        "id": "fidelity-system-ti-ts",
+        "name": "FidelitySystem",
+        "language": "typescript",
+        "score": 0.2941,
+        "contract": "ECS system that syncs Observer and Fidelity components into FidelityManager each tick and logs level transitions (L0/L1/L2)."
+      },
+      {
+        "id": "goal-system-ti-ts",
+        "name": "GoalSystem",
+        "language": "typescript",
+        "score": 0.287,
+        "contract": "Priority-based goal stack for AI agents — push, pop, interrupt; evaluates goal conditions each tick and advances the top goal toward completion."
+      },
+      {
+        "id": "voxel-terrain-ti-rust",
+        "name": "VoxelWorld / VoxelChunk / generate_chunk / mesh_chunk",
+        "language": "rust",
+        "score": 0.2863,
+        "contract": "Chunk-based (16^3 voxel) destructible terrain system: procedurally generates voxel material per-cell from surface height + cave carving, meshes chunks via naive face-culling, and streams chunks around the player with dirty-flag re-meshing on edit."
+      }
+    ],
+    "sb_query": "video transcode",
+    "sb_hits": [],
+    "sb_ids": []
+  }
+]

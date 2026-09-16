@@ -45,13 +45,21 @@ async function api(method, path, body) {
     return invoke('get_entry', { id: path.slice('/api/entries/'.length) });
   }
   if (method === 'DELETE' && path.startsWith('/api/entries/')) {
-    return invoke('delete_entry', { id: path.slice('/api/entries/'.length) });
+    const id = path.slice('/api/entries/'.length);
+    const result = await invoke('delete_entry', { id });
+    elephantNotify('remove', id);
+    return result;
   }
   if (method === 'POST' && path === '/api/entries') {
-    return invoke('create_entry', { data: body });
+    const result = await invoke('create_entry', { data: body });
+    elephantNotify('add', result?.id || body?.id);
+    return result;
   }
   if (method === 'PUT' && path.startsWith('/api/entries/')) {
-    return invoke('update_entry', { id: path.slice('/api/entries/'.length), data: body });
+    const id = path.slice('/api/entries/'.length);
+    const result = await invoke('update_entry', { id, data: body });
+    elephantNotify('add', id);
+    return result;
   }
   if (method === 'POST' && path === '/api/export') {
     return invoke('export_entries', { ids: body.ids });
@@ -3623,6 +3631,7 @@ async function openSettings() {
   if (!invoke) return;
   const s = await invoke('get_settings').catch(() => ({}));
   _pendingSettings = { ...s };
+  refreshElephantUI();
 
   const libDisplay = $('settings-lib-display');
   if (libDisplay) libDisplay.textContent = s.dir || '(default — next to app)';
@@ -3713,6 +3722,206 @@ $('settings-defaults-btn')?.addEventListener('click', async () => {
   openModal(Object.keys(defaults).length ? defaults : null, 'defaults');
 });
 
+// ── Elephant module ───────────────────────────────────────────────────────────
+
+let elephantProfile = null; // null = not installed
+
+function elephantNotify(action, entryId) {
+  if (!elephantProfile || !entryId) return;
+  const invoke = getInvoke();
+  if (!invoke) return;
+  const cmd = action === 'remove' ? 'remove_elephant_entry' : 'add_elephant_entry';
+  // fire-and-forget — don't block UI
+  invoke(cmd, { entryId }).catch(() => {});
+}
+
+async function refreshElephantUI() {
+  const invoke = getInvoke();
+  if (!invoke) return;
+  try {
+    const status = await invoke('get_elephant_status');
+    elephantProfile = status.installed ? status.profile : null;
+
+    // Topbar search
+    const wrap = $('elephant-search-wrap');
+    if (wrap) { wrap.style.display = status.installed ? 'flex' : 'none'; }
+
+    // Settings section
+    const statusEl = $('settings-elephant-status');
+    const removeBtn = $('settings-elephant-remove');
+    const syncBtn = $('settings-elephant-sync');
+    if (statusEl) {
+      if (status.installed) {
+        const label = status.profile === 'tiny' ? 'Thin Elephant' : 'Elephant';
+        statusEl.textContent = `${label} active — ${status.indexed}/${status.entries} entries indexed`;
+        removeBtn?.classList.remove('hidden');
+        syncBtn?.classList.remove('hidden');
+      } else {
+        statusEl.textContent = 'No module installed';
+        removeBtn?.classList.add('hidden');
+        syncBtn?.classList.add('hidden');
+      }
+    }
+  } catch {}
+}
+
+async function runElephantSearch() {
+  const invoke = getInvoke();
+  if (!invoke || !elephantProfile) return;
+  const problem = $('elephant-input')?.value.trim();
+  if (!problem) return;
+  const resultsEl = $('elephant-results');
+  if (!resultsEl) return;
+  resultsEl.innerHTML = '<div style="opacity:0.5;font-size:0.85rem;padding:0.25rem 0">Searching…</div>';
+  resultsEl.classList.remove('hidden');
+  try {
+    const matches = await invoke('elephant_find', { problem });
+    if (!matches.length) {
+      resultsEl.innerHTML = '<div style="opacity:0.5;font-size:0.85rem;padding:0.25rem 0">No matches found.</div>';
+      return;
+    }
+    resultsEl.innerHTML = matches.map((m, i) => `
+      <div class="elephant-result" data-id="${m.id}">
+        <span class="elephant-result-rank">${i + 1}</span>
+        <span class="elephant-result-name">${m.name}</span>
+        <span class="elephant-result-lang">${m.language}</span>
+        <span class="elephant-result-score">${(m.score * 100).toFixed(0)}%</span>
+      </div>`).join('');
+    resultsEl.querySelectorAll('.elephant-result').forEach(el => {
+      el.addEventListener('click', () => {
+        const entry = allEntries.find(e => e.id === el.dataset.id);
+        if (entry) openDetail(entry);
+      });
+    });
+  } catch (err) {
+    resultsEl.innerHTML = `<div style="color:var(--danger);font-size:0.8rem">Error: ${err}</div>`;
+  }
+}
+
+$('elephant-go')?.addEventListener('click', runElephantSearch);
+$('elephant-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') runElephantSearch(); });
+
+// Settings: elephant buttons
+$('settings-elephant-change')?.addEventListener('click', () => {
+  $('settings-overlay').classList.add('hidden');
+  const current = elephantProfile;
+  if (current) {
+    document.querySelector(`input[name="elephant-profile-picker"][value="${current}"]`).checked = true;
+  }
+  $('module-picker-overlay').classList.remove('hidden');
+});
+$('settings-elephant-remove')?.addEventListener('click', async () => {
+  const invoke = getInvoke();
+  if (!invoke) return;
+  try {
+    await invoke('remove_elephant');
+    elephantProfile = null;
+    await refreshElephantUI();
+    showToast('Elephant module removed');
+  } catch (err) { showToast('Error: ' + err, 'error'); }
+});
+$('settings-elephant-sync')?.addEventListener('click', async () => {
+  const invoke = getInvoke();
+  if (!invoke) return;
+  const btn = $('settings-elephant-sync');
+  btn.disabled = true; btn.textContent = 'Syncing…';
+  try {
+    await invoke('elephant_sync');
+    showToast('Elephant index synced');
+    await refreshElephantUI();
+  } catch (err) { showToast('Error: ' + err, 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Re-sync index'; }
+});
+
+// Module picker (from settings)
+$('module-picker-close')?.addEventListener('click', () => $('module-picker-overlay').classList.add('hidden'));
+$('module-picker-cancel')?.addEventListener('click', () => $('module-picker-overlay').classList.add('hidden'));
+$('module-picker-save')?.addEventListener('click', async () => {
+  const invoke = getInvoke();
+  if (!invoke) return;
+  const profile = document.querySelector('input[name="elephant-profile-picker"]:checked')?.value;
+  if (!profile) { showToast('Pick a profile first', 'error'); return; }
+  const btn = $('module-picker-save');
+  btn.disabled = true; btn.textContent = 'Installing…';
+  try {
+    await invoke('install_elephant', { profile });
+    elephantProfile = profile;
+    await refreshElephantUI();
+    $('module-picker-overlay').classList.add('hidden');
+    showToast('Elephant module activated');
+  } catch (err) { showToast('Error: ' + err, 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Apply'; }
+});
+
+// ── First-run wizard ──────────────────────────────────────────────────────────
+
+async function maybeShowWizard() {
+  const invoke = getInvoke();
+  if (!invoke) return;
+  try {
+    const dir = await invoke('get_library_dir');
+    if (dir) return; // already configured — skip wizard
+    $('wizard-overlay').classList.remove('hidden');
+  } catch {}
+}
+
+let wizardLibPath = null;
+
+$('wizard-lib-btn')?.addEventListener('click', async () => {
+  const invoke = getInvoke();
+  if (!invoke) return;
+  // Use Tauri dialog to pick a folder
+  try {
+    const { open } = window.__TAURI__?.dialog || {};
+    if (!open) return;
+    const selected = await open({ directory: true, title: 'Select library folder' });
+    if (!selected) return;
+    wizardLibPath = selected;
+    const display = $('wizard-lib-display');
+    if (display) display.textContent = selected;
+    const nextBtn = $('wizard-p1-next');
+    if (nextBtn) nextBtn.disabled = false;
+  } catch {}
+});
+
+$('wizard-p1-skip')?.addEventListener('click', () => {
+  $('wizard-overlay').classList.add('hidden');
+});
+$('wizard-p1-next')?.addEventListener('click', async () => {
+  if (!wizardLibPath) return;
+  const invoke = getInvoke();
+  if (!invoke) return;
+  try {
+    await invoke('set_library_dir', { path: wizardLibPath });
+    await loadEntries();
+  } catch {}
+  $('wizard-p1').classList.add('hidden');
+  $('wizard-p2').classList.remove('hidden');
+});
+
+$('wizard-p2-skip')?.addEventListener('click', () => {
+  $('wizard-overlay').classList.add('hidden');
+});
+$('wizard-p2-done')?.addEventListener('click', async () => {
+  const profile = document.querySelector('input[name="elephant-profile"]:checked')?.value;
+  if (profile) {
+    const invoke = getInvoke();
+    if (invoke) {
+      const btn = $('wizard-p2-done');
+      btn.disabled = true; btn.textContent = 'Setting up…';
+      try {
+        await invoke('install_elephant', { profile });
+        elephantProfile = profile;
+        await refreshElephantUI();
+      } catch (err) { showToast('Elephant setup error: ' + err, 'error'); }
+      btn.disabled = false; btn.textContent = 'Finish';
+    }
+  }
+  $('wizard-overlay').classList.add('hidden');
+});
+
 wireEvents();
 initLibraryPath();
 loadEntries();
+maybeShowWizard();
+refreshElephantUI();
