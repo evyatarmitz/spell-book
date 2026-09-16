@@ -318,6 +318,26 @@ fn spindex_dir() -> Result<PathBuf, String> {
     if p.exists() { Ok(p) } else { Err(format!("spindex not found at {}", p.display())) }
 }
 
+fn pip_install_deps(sidecar: &PathBuf) -> Result<(), String> {
+    let req = sidecar.join("requirements.txt");
+    if !req.exists() { return Ok(()); }
+    // Skip if all packages already importable
+    let already = std::process::Command::new("python")
+        .args(["-c", "import torch, transformers, numpy"])
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+    if already { return Ok(()); }
+    let out = std::process::Command::new("pip")
+        .args(["install", "-r", req.to_str().unwrap_or("requirements.txt"), "-q"])
+        .current_dir(sidecar)
+        .output()
+        .map_err(|e| format!("pip install failed: {}", e))?;
+    if out.status.success() { Ok(()) } else {
+        Err(String::from_utf8_lossy(&out.stderr).into_owned())
+    }
+}
+
 fn run_python(script: &str, profile: &str) -> Result<String, String> {
     let sidecar = spindex_dir()?;
     let elephant_home = sidecar.parent().unwrap().join("elephant");
@@ -370,6 +390,8 @@ fn get_elephant_status() -> ElephantStatus {
 
 #[tauri::command]
 fn install_elephant(profile: String) -> Result<(), String> {
+    let sidecar = spindex_dir()?;
+    pip_install_deps(&sidecar)?;
     let lib = read_library_dir()
         .map(|p| p.to_string_lossy().into_owned())
         .unwrap_or_default();

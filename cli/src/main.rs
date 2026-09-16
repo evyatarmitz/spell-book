@@ -304,6 +304,13 @@ fn cmd_update() -> Result<(), String> {
     if let Err(e) = download_unzip_resources(&sb_dir) {
         println!("Note: could not update resources ({})", e);
     }
+    // Install Python deps after resources are unpacked
+    let sidecar = sb_dir.join("spellbook_v1");
+    if sidecar.exists() {
+        if let Err(e) = pip_install_deps(&sidecar) {
+            println!("Note: could not install Python dependencies ({})", e);
+        }
+    }
 
     // Also update the app if we can find it
     if let Some(app_exe) = find_app_exe() {
@@ -330,13 +337,37 @@ fn spindex_dir() -> Option<PathBuf> {
     if p.exists() { Some(p) } else { None }
 }
 
+fn pip_install_deps(sidecar: &PathBuf) -> Result<(), String> {
+    let req = sidecar.join("requirements.txt");
+    if !req.exists() { return Ok(()); }
+    let already = std::process::Command::new("python")
+        .args(["-c", "import torch, transformers, numpy"])
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+    if already { return Ok(()); }
+    println!("Installing Python dependencies...");
+    let out = std::process::Command::new("pip")
+        .args(["install", "-r", req.to_str().unwrap_or("requirements.txt")])
+        .current_dir(sidecar)
+        .output()
+        .map_err(|e| format!("pip install failed: {}", e))?;
+    if out.status.success() {
+        println!("Dependencies installed.");
+        Ok(())
+    } else {
+        Err(String::from_utf8_lossy(&out.stderr).into_owned())
+    }
+}
+
 fn cmd_find(problem: Option<String>) -> Result<(), String> {
     let problem = problem.ok_or("Usage: sb find <problem description>")?;
     let s = read_settings();
     let profile = s.elephant_profile.ok_or(
         "Elephant is not installed. Enable it in Spell Book Settings → Modules."
     )?;
-    let sidecar = spindex_dir().ok_or("spindex not found next to sb.exe")?;
+    let sidecar = spindex_dir().ok_or("spindex not found next to sb.exe. Run 'sb update' to download it.")?;
+    pip_install_deps(&sidecar)?;
     let elephant_home = sidecar.parent().unwrap().join("elephant");
     let lib = read_library_dir()
         .map(|p| p.to_string_lossy().into_owned())
