@@ -347,8 +347,8 @@ fn pip_install_deps(sidecar: &PathBuf) -> Result<(), String> {
         .unwrap_or(false);
     if already { return Ok(()); }
     println!("Installing Python dependencies...");
-    let out = std::process::Command::new("pip")
-        .args(["install", "-r", req.to_str().unwrap_or("requirements.txt")])
+    let out = std::process::Command::new("python")
+        .args(["-m", "pip", "install", "-r", req.to_str().unwrap_or("requirements.txt")])
         .current_dir(sidecar)
         .output()
         .map_err(|e| format!("pip install failed: {}", e))?;
