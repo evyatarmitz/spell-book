@@ -209,6 +209,45 @@ fn download_replace(asset_name: &str, dest: &PathBuf) -> Result<(), String> {
     Ok(())
 }
 
+fn download_unzip_resources(install_dir: &PathBuf) -> Result<(), String> {
+    let url = format!("https://api.github.com/repos/{}/releases/latest", REPO);
+    let resp: serde_json::Value = ureq::get(&url)
+        .set("User-Agent", "sb-cli")
+        .call().map_err(|e| format!("Network error: {}", e))?
+        .into_json().map_err(|e| format!("Parse error: {}", e))?;
+
+    let assets = resp["assets"].as_array().ok_or("No assets")?;
+    let Some(asset) = assets.iter().find(|a| a["name"].as_str() == Some("resources.zip")) else {
+        return Ok(()); // older release without resources.zip — skip silently
+    };
+    let download_url = asset["browser_download_url"].as_str().ok_or("No download URL")?;
+
+    println!("Downloading resources.zip...");
+    let mut reader = ureq::get(download_url)
+        .set("User-Agent", "sb-cli")
+        .call().map_err(|e| format!("Download error: {}", e))?
+        .into_reader();
+
+    let mut buf = Vec::new();
+    reader.read_to_end(&mut buf).map_err(|e| e.to_string())?;
+
+    let cursor = std::io::Cursor::new(buf);
+    let mut archive = zip::ZipArchive::new(cursor).map_err(|e| format!("Zip error: {}", e))?;
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i).map_err(|e| e.to_string())?;
+        let outpath = install_dir.join(file.name());
+        if file.name().ends_with('/') {
+            fs::create_dir_all(&outpath).map_err(|e| e.to_string())?;
+        } else {
+            if let Some(p) = outpath.parent() { fs::create_dir_all(p).map_err(|e| e.to_string())?; }
+            let mut out = fs::File::create(&outpath).map_err(|e| e.to_string())?;
+            std::io::copy(&mut file, &mut out).map_err(|e| e.to_string())?;
+        }
+    }
+    println!("Resources updated.");
+    Ok(())
+}
+
 fn cmd_update_app() -> Result<(), String> {
     let app_exe = find_app_exe()
         .ok_or("spell-book.exe not found. Is Spell Book installed?")?;
@@ -261,10 +300,15 @@ fn cmd_update() -> Result<(), String> {
 
     // Always update the app if we can find it
     if let Some(app_exe) = find_app_exe() {
+        let install_dir = app_exe.parent().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."));
         println!("Updating app at {}...", app_exe.display());
         match download_replace("spell-book.exe", &app_exe) {
             Ok(_) => println!("App updated. Relaunch Spell Book to use the new version."),
             Err(e) => println!("Note: could not update app ({}). Run 'sb update-app' or reinstall.", e),
+        }
+        // Also unpack bundled resources (spellbook_v1/, elephant/) if present in release
+        if let Err(e) = download_unzip_resources(&install_dir) {
+            println!("Note: could not update resources ({})", e);
         }
     }
 

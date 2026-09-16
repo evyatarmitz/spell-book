@@ -2798,12 +2798,13 @@ dependencies = [
 
 [[package]]
 name = "sb"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "serde_json",
  "spellbook-core",
  "ureq",
  "winreg 0.52.0",
+ "zip",
 ]
 
 [[package]]
@@ -3205,7 +3206,7 @@ dependencies = [
 
 [[package]]
 name = "spell-book"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "serde",
  "serde_json",
