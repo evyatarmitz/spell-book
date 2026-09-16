@@ -298,17 +298,26 @@ fn cmd_update() -> Result<(), String> {
         println!("CLI updated. Open a new terminal to use the new version.");
     }
 
-    // Always update the app if we can find it
+    // Unpack resources next to sb.exe (spellbook_v1/, elephant/)
+    let sb_dir = env::current_exe().ok().and_then(|p| p.parent().map(PathBuf::from))
+        .unwrap_or_else(|| PathBuf::from("."));
+    if let Err(e) = download_unzip_resources(&sb_dir) {
+        println!("Note: could not update resources ({})", e);
+    }
+
+    // Also update the app if we can find it
     if let Some(app_exe) = find_app_exe() {
-        let install_dir = app_exe.parent().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."));
+        let app_dir = app_exe.parent().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."));
         println!("Updating app at {}...", app_exe.display());
         match download_replace("spell-book.exe", &app_exe) {
             Ok(_) => println!("App updated. Relaunch Spell Book to use the new version."),
             Err(e) => println!("Note: could not update app ({}). Run 'sb update-app' or reinstall.", e),
         }
-        // Also unpack bundled resources (spellbook_v1/, elephant/) if present in release
-        if let Err(e) = download_unzip_resources(&install_dir) {
-            println!("Note: could not update resources ({})", e);
+        // Also unpack resources next to the GUI app if it lives in a different folder
+        if app_dir != sb_dir {
+            if let Err(e) = download_unzip_resources(&app_dir) {
+                println!("Note: could not update app resources ({})", e);
+            }
         }
     }
 
