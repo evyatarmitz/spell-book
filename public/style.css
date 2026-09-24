@@ -1173,6 +1173,14 @@ pre.modal-source-hl code[class*="language-"] {
 .elephant-result-name { font-weight: 500; font-size: 0.85rem; flex: 1; }
 .elephant-result-lang { font-size: 0.72rem; opacity: 0.5; }
 .elephant-result-score { font-size: 0.7rem; opacity: 0.4; }
+.elephant-spinner {
+  width: 0.85rem; height: 0.85rem; flex-shrink: 0;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent, #7c6af7);
+  border-radius: 50%;
+  animation: elephant-spin 0.7s linear infinite;
+}
+@keyframes elephant-spin { to { transform: rotate(360deg); } }
 
 /* ── Wizard overlay ─────────────────────────────────────── */
 #wizard-overlay {

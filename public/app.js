@@ -3806,7 +3806,7 @@ async function runElephantSearch(query) {
   if (!problem) return;
   const resultsEl = $('elephant-results');
   if (!resultsEl) return;
-  resultsEl.innerHTML = '<div style="opacity:0.5;font-size:0.85rem;padding:0.25rem 0">Searching…</div>';
+  resultsEl.innerHTML = '<div style="display:flex;align-items:center;gap:0.5rem;opacity:0.6;font-size:0.85rem;padding:0.25rem 0"><span class="elephant-spinner"></span>Searching…</div>';
   resultsEl.classList.remove('hidden');
   try {
     const matches = await invoke('elephant_find', { problem });
@@ -3815,17 +3815,14 @@ async function runElephantSearch(query) {
       return;
     }
     resultsEl.innerHTML = matches.map((m, i) => `
-      <div class="elephant-result" data-id="${m.id}">
+      <div class="elephant-result" data-id="${m.id}" style="cursor:pointer">
         <span class="elephant-result-rank">${i + 1}</span>
         <span class="elephant-result-name">${m.name}</span>
         <span class="elephant-result-lang">${m.language}</span>
         <span class="elephant-result-score">${(m.score * 100).toFixed(0)}%</span>
       </div>`).join('');
     resultsEl.querySelectorAll('.elephant-result').forEach(el => {
-      el.addEventListener('click', () => {
-        const entry = allEntries.find(e => e.id === el.dataset.id);
-        if (entry) openDetail(entry);
-      });
+      el.addEventListener('click', () => showDetail(el.dataset.id));
     });
   } catch (err) {
     resultsEl.innerHTML = `<div style="color:var(--danger);font-size:0.8rem">Error: ${err}</div>`;
