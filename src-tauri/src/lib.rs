@@ -405,20 +405,22 @@ fn get_elephant_status() -> ElephantStatus {
 }
 
 #[tauri::command]
-fn install_elephant(profile: String) -> Result<(), String> {
-    let sidecar = spindex_dir()?;
-    pip_install_deps(&sidecar)?;
-    let lib = read_library_dir()
-        .map(|p| p.to_string_lossy().into_owned())
-        .unwrap_or_default();
-    let script = format!(
-        "import sys; sys.path.insert(0,'.'); from spindex import api; api.sync({:?}); print('ok')",
-        lib
-    );
-    run_python(&script, &profile)?;
-    let mut s = read_settings();
-    s.elephant_profile = Some(profile);
-    write_settings(&s)
+async fn install_elephant(profile: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let sidecar = spindex_dir()?;
+        pip_install_deps(&sidecar)?;
+        let lib = read_library_dir()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let script = format!(
+            "import sys; sys.path.insert(0,'.'); from spindex import api; api.sync({:?}); print('ok')",
+            lib
+        );
+        run_python(&script, &profile)?;
+        let mut s = read_settings();
+        s.elephant_profile = Some(profile);
+        write_settings(&s)
+    }).await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -438,25 +440,27 @@ struct ElephantMatch {
 }
 
 #[tauri::command]
-fn elephant_find(problem: String) -> Result<Vec<ElephantMatch>, String> {
-    let s = read_settings();
-    let profile = s.elephant_profile.ok_or("Elephant not installed")?;
-    let lib = read_library_dir()
-        .map(|p| p.to_string_lossy().into_owned())
-        .unwrap_or_default();
-    let script = format!(
-        "import json,sys; sys.path.insert(0,'.'); from spindex import api; print(json.dumps(api.find({:?},{:?})))",
-        problem, lib
-    );
-    let raw = run_python(&script, &profile)?;
-    let matches: Vec<Value> = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
-    Ok(matches.iter().map(|m| ElephantMatch {
-        id:       m["id"].as_str().unwrap_or("").to_string(),
-        name:     m["name"].as_str().unwrap_or("").to_string(),
-        language: m["language"].as_str().unwrap_or("").to_string(),
-        score:    m["score"].as_f64().unwrap_or(0.0),
-        contract: m["contract"].as_str().unwrap_or("").to_string(),
-    }).collect())
+async fn elephant_find(problem: String) -> Result<Vec<ElephantMatch>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let s = read_settings();
+        let profile = s.elephant_profile.ok_or("Elephant not installed")?;
+        let lib = read_library_dir()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let script = format!(
+            "import json,sys; sys.path.insert(0,'.'); from spindex import api; print(json.dumps(api.find({:?},{:?})))",
+            problem, lib
+        );
+        let raw = run_python(&script, &profile)?;
+        let matches: Vec<Value> = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+        Ok(matches.iter().map(|m| ElephantMatch {
+            id:       m["id"].as_str().unwrap_or("").to_string(),
+            name:     m["name"].as_str().unwrap_or("").to_string(),
+            language: m["language"].as_str().unwrap_or("").to_string(),
+            score:    m["score"].as_f64().unwrap_or(0.0),
+            contract: m["contract"].as_str().unwrap_or("").to_string(),
+        }).collect())
+    }).await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -490,18 +494,20 @@ fn remove_elephant_entry(entry_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn elephant_sync() -> Result<(), String> {
-    let s = read_settings();
-    let profile = s.elephant_profile.ok_or("Elephant not installed")?;
-    let lib = read_library_dir()
-        .map(|p| p.to_string_lossy().into_owned())
-        .unwrap_or_default();
-    let script = format!(
-        "import sys; sys.path.insert(0,'.'); from spindex import api; api.sync({:?}); print('ok')",
-        lib
-    );
-    run_python(&script, &profile)?;
-    Ok(())
+async fn elephant_sync() -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let s = read_settings();
+        let profile = s.elephant_profile.ok_or("Elephant not installed")?;
+        let lib = read_library_dir()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let script = format!(
+            "import sys; sys.path.insert(0,'.'); from spindex import api; api.sync({:?}); print('ok')",
+            lib
+        );
+        run_python(&script, &profile)?;
+        Ok(())
+    }).await.map_err(|e| e.to_string())?
 }
 
 // ── Entry point ───────────────────────────────────────────────────────────────
