@@ -3402,14 +3402,12 @@ function wireEvents() {
   // Sidebar
   $('clear-filters').addEventListener('click', clearAllFilters);
   $('search').addEventListener('input', debounce(e => {
-    if (elephantSearchMode) {
-      runElephantSearch(e.target.value);
-    } else {
-      filters.search = e.target.value; applyFilters();
-    }
-  }, 400));
+    if (!elephantSearchMode) { filters.search = e.target.value; applyFilters(); }
+  }, 120));
   $('search').addEventListener('keydown', e => {
-    if (e.key === 'Escape' && elephantSearchMode) {
+    if (elephantSearchMode && e.key === 'Enter') {
+      runElephantSearch($('search').value);
+    } else if (e.key === 'Escape' && elephantSearchMode) {
       setElephantSearchMode(false);
       $('search').value = '';
     }
