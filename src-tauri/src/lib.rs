@@ -324,22 +324,27 @@ fn spindex_dir() -> Result<PathBuf, String> {
 }
 
 fn pip_install_deps(sidecar: &PathBuf) -> Result<(), String> {
-    let already = std::process::Command::new("python")
-        .args(["-c", "import torch, transformers, numpy"])
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
+    #[cfg(windows)]
+    use std::os::windows::process::CommandExt;
+    let already = {
+        let mut cmd = std::process::Command::new("python");
+        cmd.args(["-c", "import torch, transformers, numpy"]);
+        #[cfg(windows)] cmd.creation_flags(0x08000000);
+        cmd.output().map(|o| o.status.success()).unwrap_or(false)
+    };
     if already { return Ok(()); }
     let req = sidecar.join("requirements.txt");
     let out = if req.exists() {
-        std::process::Command::new("python")
-            .args(["-m", "pip", "install", "-r", req.to_str().unwrap_or("requirements.txt"), "-q"])
-            .current_dir(sidecar)
-            .output()
+        let mut cmd = std::process::Command::new("python");
+        cmd.args(["-m", "pip", "install", "-r", req.to_str().unwrap_or("requirements.txt"), "-q"])
+           .current_dir(sidecar);
+        #[cfg(windows)] cmd.creation_flags(0x08000000);
+        cmd.output()
     } else {
-        std::process::Command::new("python")
-            .args(["-m", "pip", "install", "torch", "transformers", "numpy", "-q"])
-            .output()
+        let mut cmd = std::process::Command::new("python");
+        cmd.args(["-m", "pip", "install", "torch", "transformers", "numpy", "-q"]);
+        #[cfg(windows)] cmd.creation_flags(0x08000000);
+        cmd.output()
     }.map_err(|e| format!("pip install failed: {}", e))?;
     if out.status.success() { Ok(()) } else {
         Err(String::from_utf8_lossy(&out.stderr).into_owned())
@@ -347,14 +352,17 @@ fn pip_install_deps(sidecar: &PathBuf) -> Result<(), String> {
 }
 
 fn run_python(script: &str, profile: &str) -> Result<String, String> {
+    #[cfg(windows)]
+    use std::os::windows::process::CommandExt;
     let sidecar = spindex_dir()?;
     let elephant_home = sidecar.parent().unwrap().join("elephant");
-    let out = std::process::Command::new("python")
-        .args(["-c", script])
+    let mut cmd = std::process::Command::new("python");
+    cmd.args(["-c", script])
         .current_dir(&sidecar)
         .env("SPINDEX_MODEL_PROFILE", profile)
-        .env("ELEPHANT_HOME", &elephant_home)
-        .output()
+        .env("ELEPHANT_HOME", &elephant_home);
+    #[cfg(windows)] cmd.creation_flags(0x08000000);
+    let out = cmd.output()
         .map_err(|e| format!("Failed to run python: {}", e))?;
     if out.status.success() {
         Ok(String::from_utf8_lossy(&out.stdout).into_owned())

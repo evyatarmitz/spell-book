@@ -119,6 +119,7 @@ function clearAllFilters() {
   ['tags','languages','origins','statuses'].forEach(k => filters[k].clear());
   filters.search = '';
   $('search').value = '';
+  if (elephantSearchMode) setElephantSearchMode(false);
   applyFilters();
   renderFilters();
 }
@@ -3401,8 +3402,18 @@ function wireEvents() {
   // Sidebar
   $('clear-filters').addEventListener('click', clearAllFilters);
   $('search').addEventListener('input', debounce(e => {
-    filters.search = e.target.value; applyFilters();
-  }, 120));
+    if (elephantSearchMode) {
+      runElephantSearch(e.target.value);
+    } else {
+      filters.search = e.target.value; applyFilters();
+    }
+  }, 400));
+  $('search').addEventListener('keydown', e => {
+    if (e.key === 'Escape' && elephantSearchMode) {
+      setElephantSearchMode(false);
+      $('search').value = '';
+    }
+  });
 
 
   // Topbar + detail + selection
@@ -3765,10 +3776,35 @@ async function refreshElephantUI() {
   } catch {}
 }
 
-async function runElephantSearch() {
+let elephantSearchMode = false;
+
+function setElephantSearchMode(on) {
+  elephantSearchMode = on;
+  const searchEl = $('search');
+  const toggleBtn = $('elephant-toggle');
+  if (!searchEl) return;
+  if (on) {
+    searchEl.placeholder = '🐘 Find by problem…';
+    searchEl.style.borderColor = 'var(--accent, #7c6af7)';
+    if (toggleBtn) toggleBtn.style.opacity = '1';
+    // clear keyword results, show elephant panel empty
+    const resultsEl = $('elephant-results');
+    if (resultsEl) { resultsEl.innerHTML = ''; resultsEl.classList.remove('hidden'); }
+  } else {
+    searchEl.placeholder = 'Search name, contract, notes…';
+    searchEl.style.borderColor = '';
+    if (toggleBtn) toggleBtn.style.opacity = '0.5';
+    const resultsEl = $('elephant-results');
+    if (resultsEl) { resultsEl.innerHTML = ''; resultsEl.classList.add('hidden'); }
+    filters.search = '';
+    applyFilters();
+  }
+}
+
+async function runElephantSearch(query) {
   const invoke = getInvoke();
   if (!invoke || !elephantProfile) return;
-  const problem = $('elephant-input')?.value.trim();
+  const problem = query?.trim();
   if (!problem) return;
   const resultsEl = $('elephant-results');
   if (!resultsEl) return;
@@ -3798,17 +3834,9 @@ async function runElephantSearch() {
   }
 }
 
-$('elephant-go')?.addEventListener('click', runElephantSearch);
-$('elephant-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') runElephantSearch(); });
-
 $('elephant-toggle')?.addEventListener('click', () => {
-  const wrap = $('elephant-search-wrap');
-  if (!wrap) return;
-  const open = wrap.style.display === 'flex';
-  wrap.style.display = open ? 'none' : 'flex';
-  const btn = $('elephant-toggle');
-  if (btn) btn.style.opacity = open ? '0.5' : '1';
-  if (!open) setTimeout(() => $('elephant-input')?.focus(), 50);
+  setElephantSearchMode(!elephantSearchMode);
+  if (elephantSearchMode) setTimeout(() => $('search')?.focus(), 50);
 });
 
 // Settings: elephant buttons
