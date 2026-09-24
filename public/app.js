@@ -3752,12 +3752,12 @@ async function refreshElephantUI() {
     const syncBtn = $('settings-elephant-sync');
     if (statusEl) {
       if (status.installed) {
-        const label = status.profile === 'tiny' ? 'Thin Elephant' : 'Elephant';
-        statusEl.textContent = `${label} active — ${status.indexed}/${status.entries} entries indexed`;
+        const label = status.profile === 'tiny' ? '🐘 Thin Elephant (~90 MB, MiniLM)' : '🐘 Elephant (~2.5 GB, MiniLM + Qwen-3B)';
+        statusEl.innerHTML = `<strong>${label}</strong><br><span style="opacity:0.6;font-size:0.75rem">${status.indexed}/${status.entries} entries indexed</span>`;
         removeBtn?.classList.remove('hidden');
         syncBtn?.classList.remove('hidden');
       } else {
-        statusEl.textContent = 'No module installed';
+        statusEl.innerHTML = '<span style="opacity:0.5">No module installed</span>';
         removeBtn?.classList.add('hidden');
         syncBtn?.classList.add('hidden');
       }
@@ -3800,6 +3800,16 @@ async function runElephantSearch() {
 
 $('elephant-go')?.addEventListener('click', runElephantSearch);
 $('elephant-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') runElephantSearch(); });
+
+$('elephant-toggle')?.addEventListener('click', () => {
+  const wrap = $('elephant-input-wrap');
+  if (!wrap) return;
+  const open = wrap.style.display === 'flex';
+  wrap.style.display = open ? 'none' : 'flex';
+  const btn = $('elephant-toggle');
+  if (btn) btn.style.opacity = open ? '1' : '0.5';
+  if (!open) setTimeout(() => $('elephant-input')?.focus(), 50);
+});
 
 // Settings: elephant buttons
 $('settings-elephant-change')?.addEventListener('click', () => {

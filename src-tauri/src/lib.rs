@@ -290,10 +290,15 @@ fn install_app_update(release_url: String, app: tauri::AppHandle) -> Result<(), 
     );
     fs::write(&bat_path, &bat).map_err(|e| format!("Batch write error: {}", e))?;
 
-    std::process::Command::new("cmd")
-        .args(["/c", "start", "", "/min", bat_path.to_str().unwrap_or("")])
-        .spawn()
-        .map_err(|e| format!("Launch updater error: {}", e))?;
+    {
+        #[cfg(windows)]
+        use std::os::windows::process::CommandExt;
+        let mut cmd = std::process::Command::new("cmd");
+        cmd.args(["/c", bat_path.to_str().unwrap_or("")]);
+        #[cfg(windows)]
+        cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+        cmd.spawn().map_err(|e| format!("Launch updater error: {}", e))?;
+    }
 
     app.exit(0);
     Ok(())

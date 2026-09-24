@@ -42,7 +42,7 @@
     <button id="clear-filters" class="btn-clear-filters">Clear all filters</button>
     <div class="sidebar-footer">
       <div style="padding-top:1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:0.7rem;opacity:0.4">v1.2.5</span>
+        <span style="font-size:0.7rem;opacity:0.4">v1.2.6</span>
         <button id="settings-btn" class="btn-icon" title="Settings" style="font-size:1rem">&#9881;</button>
       </div>
     </div>
@@ -60,8 +60,11 @@
         <option value="language">Language</option>
       </select>
       <div id="elephant-search-wrap" class="hidden" style="display:none;align-items:center;gap:0.4rem">
-        <input id="elephant-input" type="text" class="search-input" placeholder="🐘 Find by problem…" autocomplete="off" style="width:220px">
-        <button id="elephant-go" class="btn-ghost btn-sm">Find</button>
+        <button id="elephant-toggle" class="btn-ghost btn-sm" title="Semantic search" style="padding:0.2rem 0.5rem;font-size:0.85rem">🐘</button>
+        <div id="elephant-input-wrap" style="display:none;align-items:center;gap:0.4rem">
+          <input id="elephant-input" type="text" class="search-input" placeholder="Find by problem…" autocomplete="off" style="width:220px">
+          <button id="elephant-go" class="btn-ghost btn-sm">Find</button>
+        </div>
       </div>
       <button id="add-btn" class="btn-primary">+ New Entry</button>
     </header>
@@ -119,7 +122,7 @@
         <div>
           <div class="filter-label" style="margin-bottom:0.4rem">MODULES</div>
           <div id="settings-elephant-section">
-            <div id="settings-elephant-status" style="font-size:0.8rem;opacity:0.7;margin-bottom:0.5rem"></div>
+            <div id="settings-elephant-status" style="font-size:0.85rem;margin-bottom:0.5rem"></div>
             <div style="display:flex;gap:0.5rem">
               <button id="settings-elephant-change" class="btn-ghost btn-sm">Change module…</button>
               <button id="settings-elephant-remove" class="btn-ghost btn-sm hidden">Remove Elephant</button>
