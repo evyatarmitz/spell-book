@@ -3742,9 +3742,9 @@ async function refreshElephantUI() {
     const status = await invoke('get_elephant_status');
     elephantProfile = status.installed ? status.profile : null;
 
-    // Topbar search
-    const wrap = $('elephant-search-wrap');
-    if (wrap) { wrap.style.display = status.installed ? 'flex' : 'none'; }
+    // Sidebar toggle button
+    const toggleBtn = $('elephant-toggle');
+    if (toggleBtn) toggleBtn.style.display = status.installed ? 'inline-flex' : 'none';
 
     // Settings section
     const statusEl = $('settings-elephant-status');
@@ -3802,12 +3802,12 @@ $('elephant-go')?.addEventListener('click', runElephantSearch);
 $('elephant-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') runElephantSearch(); });
 
 $('elephant-toggle')?.addEventListener('click', () => {
-  const wrap = $('elephant-input-wrap');
+  const wrap = $('elephant-search-wrap');
   if (!wrap) return;
   const open = wrap.style.display === 'flex';
   wrap.style.display = open ? 'none' : 'flex';
   const btn = $('elephant-toggle');
-  if (btn) btn.style.opacity = open ? '1' : '0.5';
+  if (btn) btn.style.opacity = open ? '0.5' : '1';
   if (!open) setTimeout(() => $('elephant-input')?.focus(), 50);
 });
 
@@ -3851,6 +3851,11 @@ $('module-picker-save')?.addEventListener('click', async () => {
   if (!invoke) return;
   const profile = document.querySelector('input[name="elephant-profile-picker"]:checked')?.value;
   if (!profile) { showToast('Pick a profile first', 'error'); return; }
+  if (profile === elephantProfile) {
+    $('module-picker-overlay').classList.add('hidden');
+    showToast('Already active');
+    return;
+  }
   const btn = $('module-picker-save');
   btn.disabled = true; btn.textContent = 'Installing…';
   try {

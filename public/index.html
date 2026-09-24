@@ -15,8 +15,9 @@
       <span class="brand-name">Spell Book</span>
     </div>
 
-    <div class="filter-block">
-      <input type="text" id="search" class="search-input" placeholder="Search name, contract, notes…" autocomplete="off">
+    <div class="filter-block" style="display:flex;align-items:center;gap:0.4rem">
+      <input type="text" id="search" class="search-input" placeholder="Search name, contract, notes…" autocomplete="off" style="flex:1;min-width:0">
+      <button id="elephant-toggle" title="Semantic search" style="display:none;background:none;border:none;cursor:pointer;font-size:1.1rem;padding:0.1rem;opacity:0.5;flex-shrink:0" class="btn-icon">🐘</button>
     </div>
 
     <div class="filter-block">
@@ -42,7 +43,7 @@
     <button id="clear-filters" class="btn-clear-filters">Clear all filters</button>
     <div class="sidebar-footer">
       <div style="padding-top:1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:0.7rem;opacity:0.4">v1.2.6</span>
+        <span style="font-size:0.7rem;opacity:0.4">v1.2.7</span>
         <button id="settings-btn" class="btn-icon" title="Settings" style="font-size:1rem">&#9881;</button>
       </div>
     </div>
@@ -59,12 +60,9 @@
         <option value="status">Status</option>
         <option value="language">Language</option>
       </select>
-      <div id="elephant-search-wrap" class="hidden" style="display:none;align-items:center;gap:0.4rem">
-        <button id="elephant-toggle" class="btn-ghost btn-sm" title="Semantic search" style="padding:0.2rem 0.5rem;font-size:0.85rem">🐘</button>
-        <div id="elephant-input-wrap" style="display:none;align-items:center;gap:0.4rem">
-          <input id="elephant-input" type="text" class="search-input" placeholder="Find by problem…" autocomplete="off" style="width:220px">
-          <button id="elephant-go" class="btn-ghost btn-sm">Find</button>
-        </div>
+      <div id="elephant-search-wrap" style="display:none;align-items:center;gap:0.4rem">
+        <input id="elephant-input" type="text" class="search-input" placeholder="🐘 Find by problem…" autocomplete="off" style="width:220px">
+        <button id="elephant-go" class="btn-ghost btn-sm">Find</button>
       </div>
       <button id="add-btn" class="btn-primary">+ New Entry</button>
     </header>

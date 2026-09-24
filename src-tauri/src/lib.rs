@@ -281,7 +281,7 @@ fn install_app_update(release_url: String, app: tauri::AppHandle) -> Result<(), 
          if not errorlevel 1 ( timeout /t 1 /nobreak >nul & goto wait )\r\n\
          if exist \"{old}\" del /f \"{old}\"\r\n\
          move /y \"{tmp}\" \"{exe}\"\r\n\
-         start \"\" \"{exe}\"\r\n\
+         start /b \"\" \"{exe}\"\r\n\
          del /f \"%~f0\"\r\n",
         pid = pid,
         old = old_path.display(),
