@@ -71,18 +71,33 @@ sb add entry.json
 ```
 See [`AI_README.md`](AI_README.md) for the JSON format — it's written for AI agents but works as a human reference too.
 
+## Elephant — semantic search
+
+Elephant is an optional module that lets you find entries by describing the problem rather than by keywords. It uses a local embedding model (no internet required after the first download).
+
+**Install:** open Settings → Modules → Change module… and pick a profile:
+- **Elephant (~2.5 GB)** — MiniLM + Qwen-3B, highest recall, GPU-friendly
+- **Thin Elephant (~90 MB)** — MiniLM only, fast, no GPU needed
+
+**Use in the app:** click the 🐘 button at the end of the sidebar search bar. The bar switches to semantic mode (highlighted border, placeholder changes). Type your problem description and press Enter. Results appear as a ranked list above the card grid — click any result to open its card. Press 🐘 again or Escape to return to keyword search.
+
+**Use from the CLI:** `sb find <problem description>`
+
+Model weights download on first search. You can re-sync the index, swap profiles, or remove the module at any time from Settings → Modules.
+
 ## CLI reference
 
 ```
-sb use <path>         Point sb at your library folder (only needed to override the default)
-sb status             Show library path and entry count
+sb use <path>              Point sb at your library folder (only needed to override the default)
+sb status                  Show library path and entry count
 
-sb init-ai            Copy AI_README.md into the current folder
-sb add <entry.json>   Add a new entry from a JSON file
-sb search <query>     Search by name, language, tags, or contract
-sb get <name|id>      Print source for an entry
-sb update             Check for a new release and self-update
-sb app                Launch the Spell Book desktop app
+sb init-ai                 Copy AI_README.md into the current folder
+sb add <entry.json>        Add a new entry from a JSON file
+sb search <query>          Keyword search by name, language, tags, or contract
+sb find <description>      Semantic search via Elephant (requires Elephant module)
+sb get <name|id>           Print source for an entry
+sb update                  Check for a new release and self-update
+sb app                     Launch the Spell Book desktop app
 ```
 
 ## Catalog schema
